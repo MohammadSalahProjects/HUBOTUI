@@ -1,4 +1,4 @@
-// ignore_for_file: constant_identifier_names, use_key_in_widget_constructors, library_private_types_in_public_api
+// ignore_for_file: constant_identifier_names, use_key_in_widget_constructors, library_private_types_in_public_api, use_build_context_synchronously
 
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
@@ -178,11 +178,11 @@ class _SignupScreenState extends State<SignupScreen> {
                     );
                   }
                 },
-                child: const Text('Sign Up'),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.indigo, // Update the button color
                   padding: const EdgeInsets.symmetric(vertical: 16),
                 ),
+                child: const Text('Sign Up'),
               ),
             ],
           ),
