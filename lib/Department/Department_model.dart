@@ -1,33 +1,44 @@
-import '../Faculty/Faculty_model.dart';
+import 'package:hubot/Faculty/Faculty_model.dart';
 
 class Department {
-  final String id;
-  final String name;
+  final String departmentId;
+  final Faculty faculty;
+  final String departmentName;
+  final int departmentLocationId;
   final String keyword;
   final String description;
-  final int departmentLocationId;
   final int floor;
-  final Faculty faculty;
 
   Department({
-    required this.id,
-    required this.name,
+    required this.departmentId,
+    required this.faculty,
+    required this.departmentName,
+    required this.departmentLocationId,
     required this.keyword,
     required this.description,
-    required this.departmentLocationId,
     required this.floor,
-    required this.faculty,
   });
 
   factory Department.fromJson(Map<String, dynamic> json) {
     return Department(
-      id: json['departmentId'] as String,
-      name: json['departmentName'] as String,
-      keyword: json['keyword'] as String,
-      description: json['description'] as String,
-      departmentLocationId: json['departmentLocationId'] as int,
-      floor: json['floor'] as int,
-      faculty: Faculty.fromJson(json['faculty'] as Map<String, dynamic>),
+      departmentId: json['departmentId'],
+      faculty: Faculty.fromJson(json['faculty']),
+      departmentName: json['departmentName'],
+      departmentLocationId: json['departmentLocationId'],
+      keyword: json['keyword'],
+      description: json['description'],
+      floor: json['floor'],
     );
+  }
+  Map<String, dynamic> toJson() {
+    return {
+      'departmentId': departmentId,
+      'faculty': faculty,
+      'departmentName': departmentName,
+      'departmentLocationId': departmentLocationId,
+      'keyword': keyword, // Uncomment if needed
+      'description': description,
+      'floor': floor,
+    };
   }
 }

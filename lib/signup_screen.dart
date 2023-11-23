@@ -1,15 +1,9 @@
-// ignore_for_file: constant_identifier_names, use_key_in_widget_constructors, library_private_types_in_public_api, use_build_context_synchronously
+import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
-import 'dart:convert';
 
-import 'Faculty/FacultySelectionPage.dart';
-
-enum Gender {
-  Male,
-  Female,
-}
+import 'StudentRegistrationScreen.dart';
 
 class SignupScreen extends StatefulWidget {
   @override
@@ -17,175 +11,102 @@ class SignupScreen extends StatefulWidget {
 }
 
 class _SignupScreenState extends State<SignupScreen> {
-  final _formKey = GlobalKey<FormState>();
-  final _userNameController = TextEditingController();
-  final _passwordController = TextEditingController();
-  final _emailController = TextEditingController();
-  Gender _selectedGender = Gender.Male; // Default gender
+  final TextEditingController usernameController = TextEditingController();
+  final TextEditingController passwordController = TextEditingController();
+  final TextEditingController confirmPasswordController =
+      TextEditingController();
+  bool passwordsMatch = true;
 
-  Future<void> _showMessageDialog(BuildContext context, String message) async {
-    return showDialog(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          title: const Text('Registration'),
-          content: Text(message),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.pop(context);
-              },
-              child: const Text('OK'),
-            ),
-          ],
-        );
+  Future<void> signUpUser() async {
+    final String apiUrl = 'http://192.168.1.7:8080/user/createUser';
+    final Map<String, String> userData = {
+      'userName': usernameController.text,
+      'password': passwordController.text,
+    };
+
+    if (passwordController.text != confirmPasswordController.text) {
+      setState(() {
+        passwordsMatch = false;
+      });
+      return;
+    }
+
+    final http.Response response = await http.post(
+      Uri.parse(apiUrl),
+      headers: <String, String>{
+        'Content-Type': 'application/json; charset=UTF-8',
       },
-    );
-  }
-
-  Future<void> _signup(
-    String username,
-    String password,
-    String email,
-    Gender gender,
-  ) async {
-    final Uri uri = Uri.parse('http://192.168.1.9:8080/user/createUser');
-    final response = await http.post(
-      uri,
-      headers: {'Content-Type': 'application/json'},
-      body: json.encode({
-        'userName': username,
-        'password': password,
-        'email': email,
-        'gender': gender == Gender.Male ? 'Male' : 'Female',
-      }),
+      body: jsonEncode(userData),
     );
 
     if (response.statusCode == 200) {
-      await _showMessageDialog(
-          context, 'Registration successful. Please continue regestration.');
-      // If signup successful, navigate to the login screen
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => FacultySelectionPage()),
-      );
-    } else {
-      _showMessageDialog(context, 'Registration failed. Please try again.');
-    }
-  }
+      // Successful signup
+      print('User signed up successfully');
 
-  @override
-  void dispose() {
-    _userNameController.dispose();
-    _passwordController.dispose();
-    _emailController.dispose();
-    super.dispose();
+      // Navigate to the student registration screen
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => StudentRegistrationScreen(
+            username: usernameController.text,
+          ),
+        ),
+      );
+
+      // Optionally, you can clear the text fields after successful signup
+      usernameController.clear();
+      passwordController.clear();
+    } else {
+      // Unsuccessful signup
+      print('Failed to sign up user');
+      // Handle error or display a message to the user
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Sign Up'),
-        backgroundColor: Colors.indigo, // Update the app bar color
+        title: Text('Signup'),
       ),
-      body: Container(
-        padding: const EdgeInsets.all(16),
-        child: Form(
-          key: _formKey,
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              TextFormField(
-                controller: _userNameController,
-                decoration: const InputDecoration(
-                  labelText: 'Username',
-                  prefixIcon: Icon(Icons.person),
-                  border: OutlineInputBorder(),
-                ),
-                validator: (value) {
-                  if (value!.isEmpty) {
-                    return 'Please enter a username';
-                  }
-                  return null;
-                },
+      body: Padding(
+        padding: EdgeInsets.all(16.0),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: <Widget>[
+            TextFormField(
+              controller: usernameController,
+              decoration: InputDecoration(
+                labelText: 'Username',
+                border: OutlineInputBorder(),
               ),
-              const SizedBox(height: 16),
-              TextFormField(
-                controller: _passwordController,
-                decoration: const InputDecoration(
-                  labelText: 'Password',
-                  prefixIcon: Icon(Icons.lock),
-                  border: OutlineInputBorder(),
-                ),
-                obscureText: true,
-                validator: (value) {
-                  if (value!.isEmpty) {
-                    return 'Please enter a password';
-                  }
-                  return null;
-                },
+            ),
+            SizedBox(height: 20),
+            TextFormField(
+              controller: passwordController,
+              obscureText: true,
+              decoration: InputDecoration(
+                labelText: 'Password',
+                border: OutlineInputBorder(),
               ),
-              const SizedBox(height: 16),
-              TextFormField(
-                controller: _emailController,
-                decoration: const InputDecoration(
-                  labelText: 'Email',
-                  prefixIcon: Icon(Icons.email),
-                  border: OutlineInputBorder(),
-                ),
-                keyboardType: TextInputType.emailAddress,
-                validator: (value) {
-                  if (value!.isEmpty) {
-                    return 'Please enter an email';
-                  }
-                  return null;
-                },
+            ),
+            SizedBox(height: 20),
+            TextFormField(
+              controller: confirmPasswordController,
+              obscureText: true,
+              decoration: InputDecoration(
+                labelText: 'Confirm Password',
+                border: OutlineInputBorder(),
+                errorText: passwordsMatch ? null : "Passwords don't match",
               ),
-              const SizedBox(height: 16),
-              DropdownButtonFormField<Gender>(
-                value: _selectedGender,
-                items: const [
-                  DropdownMenuItem(
-                    value: Gender.Male,
-                    child: Text('Male'),
-                  ),
-                  DropdownMenuItem(
-                    value: Gender.Female,
-                    child: Text('Female'),
-                  ),
-                ],
-                onChanged: (value) {
-                  setState(() {
-                    _selectedGender = value!;
-                  });
-                },
-                decoration: const InputDecoration(
-                  labelText: 'Gender',
-                  border: OutlineInputBorder(),
-                ),
-              ),
-              const SizedBox(height: 16),
-              ElevatedButton(
-                onPressed: () async {
-                  if (_formKey.currentState!.validate()) {
-                    await _signup(
-                      _userNameController.text,
-                      _passwordController.text,
-                      _emailController.text,
-                      _selectedGender,
-                    );
-                  }
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.indigo, // Update the button color
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                ),
-                child: const Text('Sign Up'),
-              ),
-            ],
-          ),
+            ),
+            SizedBox(height: 20),
+            ElevatedButton(
+              onPressed: signUpUser, // Remove the context parameter
+              child: Text('Sign Up'),
+            ),
+          ],
         ),
       ),
     );

@@ -1,36 +1,33 @@
-import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
-
-enum Gender {
-  Male,
-  Female,
-}
+import 'package:hubot/Building/Building.dart';
 
 class Faculty {
-  final String id;
-  final String name;
+  final String facultyId;
+  final Building building;
+  final String facultyName;
+  final int facultyLocationId;
   final String keyword;
   final String description;
-  final int facultyLocationId;
   final int floor;
 
   Faculty({
-    required this.id,
-    required this.name,
+    required this.facultyId,
+    required this.building,
+    required this.facultyName,
+    required this.facultyLocationId,
     required this.keyword,
     required this.description,
-    required this.facultyLocationId,
     required this.floor,
   });
 
   factory Faculty.fromJson(Map<String, dynamic> json) {
     return Faculty(
-      id: json['facultyId'] as String,
-      name: json['facultyName'] as String,
-      keyword: json['keyword'] as String,
-      description: json['description'] as String,
-      facultyLocationId: json['facultyLocationId'] as int,
-      floor: json['floor'] as int,
+      facultyId: json['facultyId'],
+      building: Building.fromJson(json['building']),
+      facultyName: json['facultyName'],
+      facultyLocationId: json['facultyLocationId'],
+      keyword: json['keyword'],
+      description: json['description'],
+      floor: json['floor'],
     );
   }
 }

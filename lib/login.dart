@@ -1,12 +1,73 @@
+// ignore_for_file: use_build_context_synchronously
+
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
+import 'package:http/http.dart' as http;
+import 'package:hubot/chatbot_page.dart';
 import 'package:hubot/signup_screen.dart';
 
 class LoginPage extends StatelessWidget {
   const LoginPage({Key? key});
 
+  Future<void> loginUser(
+      String username, String password, BuildContext context) async {
+    print('Attempting login for $username'); // Add this print statement
+    final url = Uri.parse('http://192.168.1.7:8080/user/login');
+    try {
+      final response = await http.post(
+        url,
+        body: jsonEncode({'userName': username, 'password': password}),
+        headers: {'Content-Type': 'application/json'},
+      );
+
+      print(
+          'Response status code: ${response.statusCode}'); // Add this print statement
+
+      if (response.statusCode == 200) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => ChatPage()),
+        );
+      } else {
+        showDialog(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: const Text('Login Failed'),
+            content: const Text('Invalid credentials'),
+            actions: <Widget>[
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(),
+                child: const Text('OK'),
+              ),
+            ],
+          ),
+        );
+      }
+    } catch (error) {
+      print(
+          'Error during login: $error'); // Add this print statement to catch any exceptions
+      showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text('Login Failed'),
+          content: const Text('Error during login. Please try again later.'),
+          actions: <Widget>[
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('OK'),
+            ),
+          ],
+        ),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+    String username = '';
+    String password = '';
+
     return Scaffold(
       body: ListView(
         children: [
@@ -29,15 +90,14 @@ class LoginPage extends StatelessWidget {
                   padding: EdgeInsets.only(top: 10),
                   child: CircleAvatar(
                     radius: 100.0,
-                    backgroundImage: AssetImage(
-                        'assets/images/HU logo.png'), // Replace with your image path
+                    backgroundImage: AssetImage('assets/images/HU logo.png'),
                   ),
                 ),
                 const SizedBox(height: 16.0),
                 const SizedBox(height: 40),
                 Text(
                   'HUBOT',
-                  style: GoogleFonts.adamina(
+                  style: TextStyle(
                     fontSize: 48,
                     color: Colors.white,
                     fontWeight: FontWeight.bold,
@@ -47,6 +107,7 @@ class LoginPage extends StatelessWidget {
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 40),
                   child: TextFormField(
+                    onChanged: (value) => username = value,
                     decoration: InputDecoration(
                       labelText: 'Email',
                       labelStyle: const TextStyle(color: Colors.white),
@@ -69,6 +130,7 @@ class LoginPage extends StatelessWidget {
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 40),
                   child: TextFormField(
+                    onChanged: (value) => password = value,
                     obscureText: true,
                     decoration: InputDecoration(
                       labelText: 'Password',
@@ -91,7 +153,7 @@ class LoginPage extends StatelessWidget {
                 const SizedBox(height: 30),
                 ElevatedButton(
                   onPressed: () {
-                    Navigator.pushNamed(context, '/chat');
+                    loginUser(username, password, context);
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.white,
