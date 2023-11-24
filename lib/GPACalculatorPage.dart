@@ -1,7 +1,17 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
-import 'slide_menu.dart';
-import 'chatbot_page.dart';
+
+void main() {
+  runApp(MyApp());
+}
+
+class MyApp extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      home: GPACalculatorPage(),
+    );
+  }
+}
 
 class GPACalculatorPage extends StatefulWidget {
   @override
@@ -10,8 +20,8 @@ class GPACalculatorPage extends StatefulWidget {
 
 class _GPACalculatorPageState extends State<GPACalculatorPage> {
   final _formKey = GlobalKey<FormState>();
-  final _creditHoursController = TextEditingController();
-  final _previousGPAController = TextEditingController();
+  final _previousPassedHoursController = TextEditingController(text: '0');
+  final _previousGPAController = TextEditingController(text: '0');
   List<SubjectData> _subjectDataList = [];
 
   double _calculateGPA() {
@@ -21,6 +31,14 @@ class _GPACalculatorPageState extends State<GPACalculatorPage> {
     for (var subjectData in _subjectDataList) {
       totalGradePoints += subjectData.creditHours * subjectData.gradePoints;
       totalCreditHours += subjectData.creditHours;
+    }
+
+    int previousPassedHours = int.parse(_previousPassedHoursController.text);
+    double previousGPA = double.parse(_previousGPAController.text);
+
+    if (previousPassedHours > 0) {
+      totalGradePoints += previousPassedHours * previousGPA;
+      totalCreditHours += previousPassedHours;
     }
 
     if (totalCreditHours > 0) {
@@ -58,7 +76,7 @@ class _GPACalculatorPageState extends State<GPACalculatorPage> {
 
   @override
   void dispose() {
-    _creditHoursController.dispose();
+    _previousPassedHoursController.dispose();
     _previousGPAController.dispose();
     super.dispose();
   }
@@ -67,71 +85,44 @@ class _GPACalculatorPageState extends State<GPACalculatorPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(
-          'GPA Calculator',
-          style: GoogleFonts.adamina(
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-              color: Color.fromARGB(255, 248, 247, 247)),
-        ),
-        elevation: 0,
-        centerTitle: true,
-        backgroundColor: Color.fromARGB(255, 158, 37, 160).withOpacity(0.3),
-        actions: [
-          IconButton(
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => ChatPage()),
-              );
-            },
-            icon: Icon(Icons.home),
-          ),
-        ],
+        title: Text('GPA Calculator'),
       ),
-      drawer: SlideMenu(),
-      body: Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [Colors.purple.shade200, Colors.pink.shade200],
-          ),
-        ),
+      body: SingleChildScrollView(
         child: Padding(
           padding: EdgeInsets.all(16.0),
           child: Form(
             key: _formKey,
-            child: ListView(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
+                TextFormField(
+                  controller: _previousPassedHoursController,
+                  decoration: InputDecoration(
+                    labelText: 'Previous Passed Hours',
+                  ),
+                  keyboardType: TextInputType.number,
+                  validator: (value) {
+                    if (value!.isEmpty) {
+                      return 'Please enter the previous passed hours';
+                    }
+                    if (int.tryParse(value) == null) {
+                      return 'Please enter a valid number';
+                    }
+                    return null;
+                  },
+                ),
                 TextFormField(
                   controller: _previousGPAController,
                   decoration: InputDecoration(
                     labelText: 'Previous GPA',
                   ),
-                  keyboardType: TextInputType.number,
+                  keyboardType: TextInputType.numberWithOptions(decimal: true),
                   validator: (value) {
                     if (value!.isEmpty) {
                       return 'Please enter the previous GPA';
                     }
                     if (double.tryParse(value) == null) {
                       return 'Please enter a valid GPA';
-                    }
-                    return null;
-                  },
-                ),
-                TextFormField(
-                  controller: _creditHoursController,
-                  decoration: InputDecoration(
-                    labelText: 'Earned Credit Hours',
-                  ),
-                  keyboardType: TextInputType.number,
-                  validator: (value) {
-                    if (value!.isEmpty) {
-                      return 'Please enter the earned credit hours';
-                    }
-                    if (int.tryParse(value) == null) {
-                      return 'Please enter a valid credit hours';
                     }
                     return null;
                   },
@@ -158,7 +149,6 @@ class _GPACalculatorPageState extends State<GPACalculatorPage> {
                     );
                   },
                 ),
-                const SizedBox(height: 10.0),
                 ElevatedButton(
                   onPressed: () {
                     showDialog(
@@ -172,21 +162,24 @@ class _GPACalculatorPageState extends State<GPACalculatorPage> {
                   },
                   child: const Text('Add Subject'),
                 ),
-                const SizedBox(height: 20.0),
                 ElevatedButton(
                   onPressed: () {
                     if (_formKey.currentState!.validate()) {
-                      double previousGPA =
-                          double.parse(_previousGPAController.text);
-                      int earnedCreditHours =
-                          int.parse(_creditHoursController.text);
-
                       double gpa = _calculateGPA();
-
                       _showResultDialog(gpa);
                     }
                   },
                   child: Text('Calculate GPA'),
+                ),
+                ElevatedButton(
+                  onPressed: () {
+                    setState(() {
+                      _previousPassedHoursController.text = '0';
+                      _previousGPAController.text = '0';
+                      _subjectDataList.clear();
+                    });
+                  },
+                  child: Text('Clear'),
                 ),
               ],
             ),
@@ -195,20 +188,6 @@ class _GPACalculatorPageState extends State<GPACalculatorPage> {
       ),
     );
   }
-}
-
-class SubjectData {
-  final int creditHours;
-  final String grade;
-  final double gradePoints;
-  final bool isRepeated;
-
-  SubjectData({
-    required this.creditHours,
-    required this.grade,
-    required this.gradePoints,
-    required this.isRepeated,
-  });
 }
 
 class SubjectInputDialog extends StatefulWidget {
@@ -222,13 +201,12 @@ class SubjectInputDialog extends StatefulWidget {
 
 class _SubjectInputDialogState extends State<SubjectInputDialog> {
   final _creditHoursController = TextEditingController();
-  final _gradeController = TextEditingController();
+  String _selectedGrade = 'A+';
   bool _isRepeated = false;
 
   @override
   void dispose() {
     _creditHoursController.dispose();
-    _gradeController.dispose();
     super.dispose();
   }
 
@@ -255,18 +233,35 @@ class _SubjectInputDialogState extends State<SubjectInputDialog> {
               return null;
             },
           ),
-          TextFormField(
-            controller: _gradeController,
+          DropdownButtonFormField<String>(
+            value: _selectedGrade,
+            onChanged: (newValue) {
+              setState(() {
+                _selectedGrade = newValue!;
+              });
+            },
+            items: <String>[
+              'A+',
+              'A',
+              'A-',
+              'B+',
+              'B',
+              'B-',
+              'C+',
+              'C',
+              'C-',
+              'D+',
+              'D',
+              'F'
+            ].map<DropdownMenuItem<String>>((String value) {
+              return DropdownMenuItem<String>(
+                value: value,
+                child: Text(value),
+              );
+            }).toList(),
             decoration: InputDecoration(
               labelText: 'Grade',
             ),
-            validator: (value) {
-              if (value!.isEmpty) {
-                return 'Please enter the grade';
-              }
-              // Add any custom validation for grade here if needed
-              return null;
-            },
           ),
           Row(
             children: [
@@ -292,15 +287,13 @@ class _SubjectInputDialogState extends State<SubjectInputDialog> {
         ),
         ElevatedButton(
           onPressed: () {
-            if (_creditHoursController.text.isNotEmpty &&
-                _gradeController.text.isNotEmpty) {
+            if (_creditHoursController.text.isNotEmpty) {
               int creditHours = int.parse(_creditHoursController.text);
-              String grade = _gradeController.text;
-              double gradePoints = _calculateGradePoints(grade);
+              double gradePoints = _calculateGradePoints(_selectedGrade);
 
               SubjectData subjectData = SubjectData(
                 creditHours: creditHours,
-                grade: grade,
+                grade: _selectedGrade,
                 gradePoints: gradePoints,
                 isRepeated: _isRepeated,
               );
@@ -320,21 +313,43 @@ class _SubjectInputDialogState extends State<SubjectInputDialog> {
       case 'A+':
         return 4.0;
       case 'A':
-        return 3.5;
+        return 3.75;
       case 'A-':
-        return 3.0;
+        return 3.5;
       case 'B+':
-        return 2.5;
+        return 3.25;
       case 'B':
-        return 2.0;
+        return 3.0;
       case 'B-':
-        return 1.5;
+        return 2.75;
       case 'C+':
-        return 1.0;
+        return 2.5;
       case 'C':
-        return 0.5;
+        return 2.25;
+      case 'C-':
+        return 2.0;
+      case 'D+':
+        return 1.75;
+      case 'D':
+        return 1.5;
+      case 'F':
+        return 0.0;
       default:
         return 0.0;
     }
   }
+}
+
+class SubjectData {
+  final int creditHours;
+  final String grade;
+  final double gradePoints;
+  final bool isRepeated;
+
+  SubjectData({
+    required this.creditHours,
+    required this.grade,
+    required this.gradePoints,
+    required this.isRepeated,
+  });
 }
