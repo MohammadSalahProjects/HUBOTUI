@@ -1,7 +1,10 @@
+// ignore_for_file: use_build_context_synchronously, avoid_print, prefer_const_constructors, prefer_const_declarations, must_be_immutable, library_private_types_in_public_api, use_key_in_widget_constructors
+
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:hubot/login.dart';
 
 class StudentRegistrationScreen extends StatefulWidget {
   String userId;
@@ -118,6 +121,10 @@ class _StudentRegistrationScreenState extends State<StudentRegistrationScreen> {
               ? departmentDropdownItems[0].value!
               : '';
         });
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => LoginPage()),
+        );
       } else {
         print('Failed to register student: ${response.statusCode}');
       }
