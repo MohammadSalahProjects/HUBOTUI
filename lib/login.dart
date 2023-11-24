@@ -25,7 +25,7 @@ class LoginPage extends StatelessWidget {
           'Response status code: ${response.statusCode}'); // Add this print statement
 
       if (response.statusCode == 200) {
-        Navigator.pushReplacement(
+        Navigator.push(
           context,
           MaterialPageRoute(builder: (context) => ChatPage()),
         );
@@ -109,7 +109,7 @@ class LoginPage extends StatelessWidget {
                   child: TextFormField(
                     onChanged: (value) => username = value,
                     decoration: InputDecoration(
-                      labelText: 'Email',
+                      labelText: 'username',
                       labelStyle: const TextStyle(color: Colors.white),
                       filled: true,
                       fillColor: Colors.white.withOpacity(0.3),

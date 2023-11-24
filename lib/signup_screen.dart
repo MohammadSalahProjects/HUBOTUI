@@ -17,8 +17,17 @@ class _SignupScreenState extends State<SignupScreen> {
       TextEditingController();
   bool passwordsMatch = true;
 
+  @override
+  void dispose() {
+    // Dispose controllers
+    usernameController.dispose();
+    passwordController.dispose();
+    confirmPasswordController.dispose();
+    super.dispose();
+  }
+
   Future<void> signUpUser() async {
-    final String apiUrl = 'http://192.168.1.7:8080/user/createUser';
+    const String apiUrl = 'http://192.168.1.7:8080/user/createUser';
     final Map<String, String> userData = {
       'userName': usernameController.text,
       'password': passwordController.text,
@@ -43,12 +52,15 @@ class _SignupScreenState extends State<SignupScreen> {
       // Successful signup
       print('User signed up successfully');
 
-      // Navigate to the student registration screen
+      // Fetch user ID and navigate to the student registration screen
+      String userId = await fetchUserId(usernameController.text);
+
       Navigator.push(
         context,
         MaterialPageRoute(
           builder: (context) => StudentRegistrationScreen(
-            username: usernameController.text,
+            userId:
+                userId, // Pass the fetched user ID to StudentRegistrationScreen
           ),
         ),
       );
@@ -110,5 +122,34 @@ class _SignupScreenState extends State<SignupScreen> {
         ),
       ),
     );
+  }
+}
+
+// Function to fetch user ID
+Future<String> fetchUserId(String username) async {
+  const String apiUrl = 'http://192.168.1.7:8080/user/getUserID';
+  final Map<String, String> requestData = {'userName': username};
+
+  try {
+    final http.Response response = await http.post(
+      Uri.parse(apiUrl),
+      headers: <String, String>{
+        'Content-Type': 'application/json; charset=UTF-8',
+      },
+      body: jsonEncode(requestData),
+    );
+
+    if (response.statusCode == 200) {
+      final dynamic decodedResponse = jsonDecode(response.body);
+      final String userId = decodedResponse['id'].toString(); // Extract user ID
+      print(userId);
+      return userId;
+    } else {
+      print('Failed to fetch user ID: ${response.statusCode}');
+      return ''; // Return empty string if failed to fetch user ID
+    }
+  } catch (error) {
+    print('Error fetching user ID: $error');
+    return ''; // Return empty string if error occurred
   }
 }

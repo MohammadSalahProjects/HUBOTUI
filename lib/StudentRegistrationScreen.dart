@@ -4,9 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 
 class StudentRegistrationScreen extends StatefulWidget {
-  final String username;
-
-  StudentRegistrationScreen({required this.username});
+  String userId;
+  StudentRegistrationScreen({required this.userId});
 
   @override
   _StudentRegistrationScreenState createState() =>
@@ -15,6 +14,8 @@ class StudentRegistrationScreen extends StatefulWidget {
 
 class _StudentRegistrationScreenState extends State<StudentRegistrationScreen> {
   late String selectedDepartmentId = '';
+  late String userId = '';
+
   List<DropdownMenuItem<String>> departmentDropdownItems = [];
 
   late TextEditingController firstNameController;
@@ -28,7 +29,7 @@ class _StudentRegistrationScreenState extends State<StudentRegistrationScreen> {
   void initState() {
     super.initState();
     fetchDepartments();
-
+    userId = widget.userId;
     // Initialize controllers
     firstNameController = TextEditingController();
     middleNameController = TextEditingController();
@@ -44,23 +45,6 @@ class _StudentRegistrationScreenState extends State<StudentRegistrationScreen> {
     lastNameController.dispose();
     emailController.dispose();
     super.dispose();
-  }
-
-  Future<String> fetchUserId(String username) async {
-    final String apiUrl =
-        'http://192.168.1.7:8080/user/getUserID?userName=$username';
-    try {
-      final http.Response response = await http.get(Uri.parse(apiUrl));
-      if (response.statusCode == 200) {
-        return jsonDecode(response.body);
-      } else {
-        print('Failed to fetch user ID: ${response.statusCode}');
-        return ''; // Return empty string if failed to fetch user ID
-      }
-    } catch (error) {
-      print('Error fetching user ID: $error');
-      return ''; // Return empty string if error occurred
-    }
   }
 
   Future<void> fetchDepartments() async {
@@ -95,14 +79,19 @@ class _StudentRegistrationScreenState extends State<StudentRegistrationScreen> {
   }
 
   Future<void> registerStudent() async {
+    // Fetch the user ID
     final String studentApiUrl =
         'http://192.168.1.7:8080/registerStudent/createStudent';
     final Map<String, dynamic> studentData = {
-      'user': {'id': 'userId'}, // Replace with user ID
-      'department': selectedDepartmentId,
+      'user': {
+        'id': userId, // Use the fetched user ID
+      },
+      'department': {
+        'departmentId': selectedDepartmentId,
+      },
       'firstName': firstNameController.text,
       'middleName': middleNameController.text,
-      'LastName': lastNameController.text,
+      'lastName': lastNameController.text,
       'email': emailController.text,
       'gender': selectedGender,
     };
