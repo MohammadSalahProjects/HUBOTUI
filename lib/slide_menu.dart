@@ -83,13 +83,13 @@ class SlideMenu extends StatelessWidget {
               // Navigate to Campus Map page
             },
           ),
-          ListTile(
-            title: const Text('FAQ'),
-            onTap: () {
-              Navigator.pop(context);
-              // Navigate to FAQ page
-            },
-          ),
+          // ListTile(
+          //   title: const Text('FAQ'),
+          //   onTap: () {
+          //     Navigator.pop(context);
+          //     // Navigate to FAQ page
+          //   },
+          // ),
           const Divider(),
           ListTile(
             title: const Text('Logout'),
