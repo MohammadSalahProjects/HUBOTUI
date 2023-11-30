@@ -4,7 +4,11 @@ import 'GPACalculatorPage.dart';
 import 'StudentDayManagerPage.dart';
 
 class SlideMenu extends StatelessWidget {
-  const SlideMenu({super.key});
+  final String firstName;
+  final String lastName;
+
+  const SlideMenu({Key? key, required this.firstName, required this.lastName})
+      : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -13,22 +17,22 @@ class SlideMenu extends StatelessWidget {
         children: [
           DrawerHeader(
             decoration: BoxDecoration(
-              color: (Colors.purple.shade200),
+              color: Colors.purple.shade200,
             ),
             child: Row(
               children: [
-                const CircleAvatar(
+                CircleAvatar(
                   radius: 40,
                   backgroundImage:
                       AssetImage('assets/images/mohammadsalah.jpg'),
                 ),
-                const SizedBox(width: 10),
+                SizedBox(width: 10),
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Text(
-                      'mohammad salah',
+                      '$firstName $lastName',
                       style: TextStyle(
                         color: Colors.white,
                         fontSize: 16,
@@ -44,9 +48,9 @@ class SlideMenu extends StatelessWidget {
                     ),
                   ],
                 ),
-                const Spacer(),
+                Spacer(),
                 IconButton(
-                  icon: const Icon(Icons.close),
+                  icon: Icon(Icons.close),
                   color: Colors.white,
                   onPressed: () {
                     Navigator.pop(context);
@@ -55,6 +59,7 @@ class SlideMenu extends StatelessWidget {
               ],
             ),
           ),
+
           ListTile(
             title: const Text('GPA Calculator'),
             onTap: () {

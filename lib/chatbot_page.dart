@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+
 import 'slide_menu.dart';
 
 class ChatPage extends StatelessWidget {
@@ -22,7 +23,10 @@ class ChatPage extends StatelessWidget {
         centerTitle: true,
         backgroundColor: Colors.transparent.withOpacity(0.0),
       ),
-      drawer: SlideMenu(),
+      drawer: SlideMenu(
+        firstName: '',
+        lastName: '',
+      ),
       body: Container(
         decoration: BoxDecoration(
           gradient: LinearGradient(

@@ -40,7 +40,10 @@ class _StudentDayManagerPageState extends State<StudentDayManagerPage> {
           ),
         ],
       ),
-      drawer: SlideMenu(),
+      drawer: SlideMenu(
+        firstName: '',
+        lastName: '',
+      ),
       body: Container(
         decoration: BoxDecoration(
           gradient: LinearGradient(
