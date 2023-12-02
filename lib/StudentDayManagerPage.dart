@@ -1,326 +1,231 @@
 import 'dart:convert';
 
-
 import 'package:flutter/material.dart';
-
 import 'package:http/http.dart' as http;
 
-
-class StudentDayManagerPage extends StatefulWidget {
-
+class AddSubjectDialog extends StatefulWidget {
   @override
-
-  _StudentDayManagerPageState createState() => _StudentDayManagerPageState();
-
+  _AddSubjectDialogState createState() => _AddSubjectDialogState();
 }
 
-
-class _StudentDayManagerPageState extends State<StudentDayManagerPage> {
-
+class _AddSubjectDialogState extends State<AddSubjectDialog> {
   List<DropdownMenuItem<String>> departmentDropdownItems = [];
-
-
   String selectedDepartmentId = '';
-
-
   List<DropdownMenuItem<String>> courseDropdownItems = [];
-
-
   String selectedCourseId = '';
-
-  bool isDepartmentDialogOpen = false; // New variable to track dialog state
-
+  TimeOfDay? startTime;
+  TimeOfDay? endTime;
+  List<String> selectedDays = [];
 
   @override
-
   void initState() {
-
     super.initState();
-
-
     fetchDepartments();
-
   }
-
 
   Future<void> fetchDepartments() async {
-
     final String apiUrl =
-
-        'http://192.168.1.9:8080/department/getAllDepartments';
-
-
+        'http://192.168.1.114:8080/department/getAllDepartments';
     try {
-
       final http.Response response = await http.get(Uri.parse(apiUrl));
-
-
       if (response.statusCode == 200) {
-
         final List<dynamic> decodedResponse = jsonDecode(response.body);
-
-
         List<DropdownMenuItem<String>> departments =
-
             decodedResponse.map<DropdownMenuItem<String>>((department) {
-
           return DropdownMenuItem<String>(
-
             value: department['departmentId'],
-
             child: Text(department['departmentName']),
-
           );
-
         }).toList();
 
-
         setState(() {
-
           departmentDropdownItems = departments;
-
-
           selectedDepartmentId = departmentDropdownItems.isNotEmpty
-
               ? departmentDropdownItems[0].value!
-
               : ''; // Set default value if available
-
         });
-
       } else {
-
         print('Failed to fetch departments: ${response.statusCode}');
-
       }
-
     } catch (error) {
-
       print('Error fetching departments: $error');
-
     }
-
   }
-
 
   Future<void> fetchCourses(String departmentId) async {
-
     final String apiUrl =
-
-        'http://192.168.1.9:8080/course/getAllCoursesInDepartment?departmentId=$departmentId';
-
-
+        'http://192.168.1.114:8080/course/getAllCoursesInDepartment?departmentId=$departmentId';
     try {
-
       final http.Response response = await http.get(Uri.parse(apiUrl));
-
-
       if (response.statusCode == 200) {
-
         final List<dynamic> decodedResponse = jsonDecode(response.body);
-
-
         List<DropdownMenuItem<String>> courses =
-
             decodedResponse.map<DropdownMenuItem<String>>((course) {
-
           return DropdownMenuItem<String>(
-
             value: course['courseId'],
-
             child: Text(course['courseName']),
-
           );
-
         }).toList();
 
-
         setState(() {
-
           courseDropdownItems = courses;
-
-
           selectedCourseId = courseDropdownItems.isNotEmpty
-
               ? courseDropdownItems[0].value!
-
               : ''; // Set default value if available
-
         });
-
-
-        _showDepartmentCourseSelectionDialog();
-
       } else {
-
         print('Failed to fetch courses: ${response.statusCode}');
-
       }
-
     } catch (error) {
-
       print('Error fetching courses: $error');
-
     }
-
   }
 
-
-  void _showDepartmentCourseSelectionDialog() {
-
-    showDialog(
-
-      context: context,
-
-
-      barrierDismissible: false, // Prevent dismissing dialog on outside tap
-
-
-      builder: (BuildContext context) {
-
-        isDepartmentDialogOpen = true; // Dialog is opened now
-
-
-        return AlertDialog(
-
-          title: Text('Select Department and Course'),
-
-          content: Column(
-
-            mainAxisSize: MainAxisSize.min,
-
-            children: [
-
-              DropdownButtonFormField(
-
-                value: selectedDepartmentId,
-
-                items: departmentDropdownItems,
-
-                onChanged: (value) {
-
-                  setState(() {
-
-                    selectedDepartmentId = value.toString();
-
-                  });
-
-
-                  if (selectedDepartmentId.isNotEmpty) {
-
-                    fetchCourses(selectedDepartmentId);
-
-                  }
-
-                },
-
-              ),
-
-              DropdownButtonFormField(
-
-                value: selectedCourseId,
-
-                items: courseDropdownItems,
-
-                onChanged: (value) {
-
-                  setState(() {
-
-                    selectedCourseId = value.toString();
-
-                  });
-
-                },
-
-              ),
-
-            ],
-
-          ),
-
-          actions: [
-
-            TextButton(
-
-              onPressed: () {
-
-                print('Selected Department: $selectedDepartmentId');
-
-
-                print('Selected Course: $selectedCourseId');
-
-
-                Navigator.of(context).pop();
-
-              },
-
-              child: Text('Select'),
-
-            ),
-
-          ],
-
-        );
-
-      },
-
-    ).then((_) {
-
-      isDepartmentDialogOpen = false; // Dialog is closed now
-
+  void _changeSelectedDay(String day, bool? value) {
+    setState(() {
+      if (value != null && value) {
+        selectedDays.add(day);
+      } else {
+        selectedDays.remove(day);
+      }
     });
-
   }
 
+  List<Widget> _buildDayCheckboxes() {
+    return [
+      for (var day in ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday'])
+        CheckboxListTile(
+          title: Text(day),
+          value: selectedDays.contains(day),
+          onChanged: (bool? value) {
+            setState(() {
+              if (value != null && value) {
+                selectedDays.add(day);
+              } else {
+                selectedDays.remove(day);
+              }
+            });
+          },
+        ),
+    ];
+  }
 
   @override
-
   Widget build(BuildContext context) {
-
-    return Scaffold(
-
-      appBar: AppBar(
-
-        title: Text('Student Day Manager'),
-
-      ),
-
-      body: Center(
-
+    return AlertDialog(
+      title: Text('Select Department, Course, Time, and Days'),
+      content: SingleChildScrollView(
         child: Column(
-
-          mainAxisAlignment: MainAxisAlignment.center,
-
+          mainAxisSize: MainAxisSize.min,
           children: [
-
-            ElevatedButton(
-
-              onPressed: () {
-
-                if (!isDepartmentDialogOpen) {
-
-                  // Check if dialog is not already open
-
-
-                  _showDepartmentCourseSelectionDialog();
-
-                }
-
+            Text('Select Days:'),
+            ..._buildDayCheckboxes(),
+            DropdownButtonFormField(
+              value: selectedDepartmentId,
+              items: departmentDropdownItems,
+              onChanged: (value) {
+                setState(() {
+                  selectedDepartmentId = value.toString();
+                  fetchCourses(
+                      selectedDepartmentId); // Fetch courses on department selection change
+                });
               },
-
-              child: Text('Add Subject'),
-
             ),
-
+            DropdownButtonFormField(
+              value: selectedCourseId,
+              items: courseDropdownItems,
+              onChanged: (value) {
+                setState(() {
+                  selectedCourseId = value.toString();
+                });
+              },
+            ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text('Start Time:'),
+                TextButton(
+                  onPressed: () async {
+                    final TimeOfDay? picked = await showTimePicker(
+                      context: context,
+                      initialTime: TimeOfDay.now(),
+                    );
+                    if (picked != null) {
+                      setState(() {
+                        startTime = picked;
+                      });
+                    }
+                  },
+                  child: Text(startTime?.format(context) ?? 'Select'),
+                ),
+              ],
+            ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text('End Time:'),
+                TextButton(
+                  onPressed: () async {
+                    final TimeOfDay? picked = await showTimePicker(
+                      context: context,
+                      initialTime: TimeOfDay.now(),
+                    );
+                    if (picked != null) {
+                      setState(() {
+                        endTime = picked;
+                      });
+                    }
+                  },
+                  child: Text(endTime?.format(context) ?? 'Select'),
+                ),
+              ],
+            ),
           ],
-
         ),
-
       ),
-
+      actions: [
+        TextButton(
+          onPressed: () {
+            // Print selected values and close dialog
+            print('Selected Department: $selectedDepartmentId');
+            print('Selected Course: $selectedCourseId');
+            print('Start Time: $startTime');
+            print('End Time: $endTime');
+            print('Selected Days: $selectedDays');
+            Navigator.of(context).pop();
+          },
+          child: Text('Select'),
+        ),
+      ],
     );
-
   }
-
 }
 
+class StudentDayManagerPage extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Student Day Manager'),
+      ),
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            ElevatedButton(
+              onPressed: () {
+                showDialog(
+                  context: context,
+                  builder: (BuildContext context) {
+                    return AddSubjectDialog();
+                  },
+                );
+              },
+              child: Text('Add Subject'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
