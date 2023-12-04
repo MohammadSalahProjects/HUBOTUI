@@ -25,7 +25,7 @@ class _AddSubjectDialogState extends State<AddSubjectDialog> {
 
   Future<void> fetchDepartments() async {
     final String apiUrl =
-        'http://192.168.1.114:8080/department/getAllDepartments';
+        'http://192.168.1.9:8080/department/getAllDepartments';
     try {
       final http.Response response = await http.get(Uri.parse(apiUrl));
       if (response.statusCode == 200) {
@@ -54,7 +54,7 @@ class _AddSubjectDialogState extends State<AddSubjectDialog> {
 
   Future<void> fetchCourses(String departmentId) async {
     final String apiUrl =
-        'http://192.168.1.114:8080/course/getAllCoursesInDepartment?departmentId=$departmentId';
+        'http://192.168.1.9:8080/course/getAllCoursesInDepartment?departmentId=$departmentId';
     try {
       final http.Response response = await http.get(Uri.parse(apiUrl));
       if (response.statusCode == 200) {
@@ -78,6 +78,63 @@ class _AddSubjectDialogState extends State<AddSubjectDialog> {
       }
     } catch (error) {
       print('Error fetching courses: $error');
+    }
+  }
+
+  Future<void> addScheduleSubject() async {
+    final String apiUrl = 'http://192.168.1.9:8080/ScheduleSubjects/addSubject';
+
+    final Map<String, dynamic> requestData = {
+      'student': 'studentId', // Replace with actual student ID
+      'course': selectedCourseId,
+      'startTime': startTime.toString(),
+      'endTime': endTime.toString(),
+      'selectedDays': selectedDays,
+    };
+
+    try {
+      final http.Response response = await http.post(
+        Uri.parse(apiUrl),
+        body: jsonEncode(requestData),
+        headers: {'Content-Type': 'application/json'},
+      );
+
+      if (response.statusCode == 200) {
+        print('Subject added successfully!');
+        // Call the callback to update the UI with the new subject
+        ///widget.onAddSubject('Subject Info'); // Replace with actual subject data
+        Navigator.of(context).pop();
+      } else {
+        print('Failed to add subject: ${response.statusCode}');
+        // Handle error cases here
+      }
+    } catch (error) {
+      print('Error adding subject: $error');
+      // Handle error cases here
+    }
+  }
+
+  Future<void> fetchStudentDetails(String userName) async {
+    final String apiUrl =
+        'http://192.168.1.9:8080/getStudentByUserName?userName=$userName';
+
+    try {
+      final http.Response response = await http.get(Uri.parse(apiUrl));
+
+      if (response.statusCode == 200) {
+        final dynamic decodedResponse = jsonDecode(response.body);
+        final String studentId = decodedResponse['studentId'];
+
+        // Use the retrieved student ID to create the ScheduleSubjects entry
+        // Call the function to add ScheduleSubjects with the obtained studentId
+        // Example: addScheduleSubject(studentId);
+      } else {
+        print('Failed to fetch student details: ${response.statusCode}');
+        // Handle error cases here
+      }
+    } catch (error) {
+      print('Error fetching student details: $error');
+      // Handle error cases here
     }
   }
 
@@ -201,7 +258,26 @@ class _AddSubjectDialogState extends State<AddSubjectDialog> {
   }
 }
 
-class StudentDayManagerPage extends StatelessWidget {
+class StudentDayManagerPage extends StatefulWidget {
+  @override
+  _StudentDayManagerPageState createState() => _StudentDayManagerPageState();
+}
+
+class _StudentDayManagerPageState extends State<StudentDayManagerPage> {
+  List<String> addedSubjects = [];
+
+  void addSubject(String subjectInfo) {
+    setState(() {
+      addedSubjects.add(subjectInfo);
+    });
+  }
+
+  void deleteSubject(int index) {
+    setState(() {
+      addedSubjects.removeAt(index);
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -217,14 +293,63 @@ class StudentDayManagerPage extends StatelessWidget {
                 showDialog(
                   context: context,
                   builder: (BuildContext context) {
-                    return AddSubjectDialog();
+                    return AddSubjectDialog(
+                        //      onAddSubject: addSubject,
+                        );
                   },
                 );
               },
               child: Text('Add Subject'),
             ),
+
+            // Display added subjects as rectangular buttons
+            Column(
+              children: addedSubjects.asMap().entries.map((entry) {
+                int index = entry.key;
+                String subjectInfo = entry.value;
+                return SubjectButton(
+                  subjectInfo: subjectInfo,
+                  onDelete: () => deleteSubject(index),
+                );
+              }).toList(),
+            ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+class SubjectButton extends StatelessWidget {
+  final String subjectInfo;
+  final Function()? onDelete;
+
+  const SubjectButton({
+    required this.subjectInfo,
+    required this.onDelete,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      margin: EdgeInsets.symmetric(vertical: 8.0),
+      padding: EdgeInsets.all(12.0),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(8.0),
+        border: Border.all(color: Colors.grey),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(
+            subjectInfo,
+            style: TextStyle(fontSize: 16.0),
+          ),
+          GestureDetector(
+            onTap: onDelete,
+            child: Icon(Icons.clear),
+          ),
+        ],
       ),
     );
   }

@@ -1,14 +1,20 @@
+// ignore_for_file: unnecessary_string_interpolations
+
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
 
 import 'GPACalculatorPage.dart';
 import 'StudentDayManagerPage.dart';
 
 class SlideMenu extends StatelessWidget {
-  final String firstName;
-  final String lastName;
+  final String username;
+  final String userId;
 
-  const SlideMenu({Key? key, required this.firstName, required this.lastName})
-      : super(key: key);
+  const SlideMenu({
+    Key? key,
+    required this.username,
+    required this.userId,
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -23,34 +29,36 @@ class SlideMenu extends StatelessWidget {
               children: [
                 CircleAvatar(
                   radius: 40,
-                  backgroundImage:
-                      AssetImage('assets/images/mohammadsalah.jpg'),
+                  backgroundImage: getUserGender(userId).toString() == 'female'
+                      ? const AssetImage('assets/images/femaleuserlogo.png')
+                      : const AssetImage(
+                          'assets/images/male_boy_person_people_avatar_icon_159358.png'),
                 ),
-                SizedBox(width: 10),
+                const SizedBox(width: 10),
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Text(
-                      '$firstName $lastName',
-                      style: TextStyle(
+                      '$username',
+                      style: const TextStyle(
                         color: Colors.white,
                         fontSize: 16,
                       ),
                     ),
-                    SizedBox(height: 5),
+                    const SizedBox(height: 5),
                     Text(
-                      'Logged In',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 12,
+                      'User ID: $userId', // Displaying user ID
+                      style: const TextStyle(
+                        color: Colors.white54,
+                        fontSize: 8,
                       ),
                     ),
                   ],
                 ),
-                Spacer(),
+                const Spacer(),
                 IconButton(
-                  icon: Icon(Icons.close),
+                  icon: const Icon(Icons.close),
                   color: Colors.white,
                   onPressed: () {
                     Navigator.pop(context);
@@ -106,5 +114,30 @@ class SlideMenu extends StatelessWidget {
         ],
       ),
     );
+  }
+}
+
+Future<String> getUserGender(String userId) async {
+  final String apiUrl =
+      'http://192.168.1.9:8080/registerStudent/getGender?userId=$userId';
+
+  try {
+    final http.Response response = await http.get(
+      Uri.parse(apiUrl),
+      headers: <String, String>{
+        'Content-Type': 'application/json; charset=UTF-8',
+      },
+    );
+
+    if (response.statusCode == 200) {
+      final String gender = response.body;
+      print(gender);
+      return gender;
+    } else {
+      return 'error fetching name'; // Handle case when fetching name fails
+    }
+  } catch (error) {
+    print('Error fetching name: $error');
+    return ''; // Handle error case
   }
 }

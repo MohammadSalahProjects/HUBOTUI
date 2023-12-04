@@ -4,7 +4,11 @@ import 'package:google_fonts/google_fonts.dart';
 import 'slide_menu.dart';
 
 class ChatPage extends StatelessWidget {
-  const ChatPage({super.key});
+  final String userName;
+  final String userId;
+
+  const ChatPage({Key? key, required this.userName, required this.userId})
+      : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -24,8 +28,8 @@ class ChatPage extends StatelessWidget {
         backgroundColor: Colors.transparent.withOpacity(0.0),
       ),
       drawer: SlideMenu(
-        firstName: '',
-        lastName: '',
+        username: userName,
+        userId: userId,
       ),
       body: Container(
         decoration: BoxDecoration(
