@@ -1,9 +1,14 @@
+// ignore_for_file: avoid_print
+
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 
 class AddSubjectDialog extends StatefulWidget {
+  final String userId;
+  const AddSubjectDialog({required this.userId});
+
   @override
   _AddSubjectDialogState createState() => _AddSubjectDialogState();
 }
@@ -21,6 +26,45 @@ class _AddSubjectDialogState extends State<AddSubjectDialog> {
   void initState() {
     super.initState();
     fetchDepartments();
+  }
+
+  Future<void> addScheduleSubject() async {
+    final String apiUrl = 'http://192.168.1.9:8080/ScheduleSubjects/addSubject';
+
+    final Map<String, dynamic> requestData = {
+      'student': 'studentId', // Replace with actual student ID
+      'course': selectedCourseId,
+      'startTime': startTime.toString(),
+      'endTime': endTime.toString(),
+      'selectedDays': selectedDays,
+    };
+
+    try {
+      final http.Response response = await http.post(
+        Uri.parse(apiUrl),
+        body: jsonEncode(requestData),
+        headers: {'Content-Type': 'application/json'},
+      );
+
+      if (response.statusCode == 200) {
+        String subjectDetails = 'Course: $selectedCourseId\n'
+            'Start Time: ${startTime.toString()}\n'
+            'End Time: ${endTime.toString()}\n'
+            'Days: ${selectedDays.join(', ')}';
+
+        // Call the callback function to add the subject
+        StudentDayManagerPage(userId: widget.userId).addSubject(subjectDetails);
+
+        print('Subject added successfully!');
+        Navigator.of(context).pop();
+      } else {
+        print('Failed to add subject: ${response.statusCode}');
+        // Handle error cases here
+      }
+    } catch (error) {
+      print('Error adding subject: $error');
+      // Handle error cases here
+    }
   }
 
   Future<void> fetchDepartments() async {
@@ -81,42 +125,9 @@ class _AddSubjectDialogState extends State<AddSubjectDialog> {
     }
   }
 
-  Future<void> addScheduleSubject() async {
-    final String apiUrl = 'http://192.168.1.9:8080/ScheduleSubjects/addSubject';
-
-    final Map<String, dynamic> requestData = {
-      'student': 'studentId', // Replace with actual student ID
-      'course': selectedCourseId,
-      'startTime': startTime.toString(),
-      'endTime': endTime.toString(),
-      'selectedDays': selectedDays,
-    };
-
-    try {
-      final http.Response response = await http.post(
-        Uri.parse(apiUrl),
-        body: jsonEncode(requestData),
-        headers: {'Content-Type': 'application/json'},
-      );
-
-      if (response.statusCode == 200) {
-        print('Subject added successfully!');
-        // Call the callback to update the UI with the new subject
-        ///widget.onAddSubject('Subject Info'); // Replace with actual subject data
-        Navigator.of(context).pop();
-      } else {
-        print('Failed to add subject: ${response.statusCode}');
-        // Handle error cases here
-      }
-    } catch (error) {
-      print('Error adding subject: $error');
-      // Handle error cases here
-    }
-  }
-
-  Future<void> fetchStudentDetails(String userName) async {
+  Future<void> fetchStudentDetails(String userId) async {
     final String apiUrl =
-        'http://192.168.1.9:8080/getStudentByUserName?userName=$userName';
+        'http://192.168.1.9:8080/getStudentByUserId?userName=$userId';
 
     try {
       final http.Response response = await http.get(Uri.parse(apiUrl));
@@ -170,12 +181,12 @@ class _AddSubjectDialogState extends State<AddSubjectDialog> {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: Text('Select Department, Course, Time, and Days'),
+      title: const Text('Select Department, Course, Time, and Days'),
       content: SingleChildScrollView(
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text('Select Days:'),
+            const Text('Select Days:'),
             ..._buildDayCheckboxes(),
             DropdownButtonFormField(
               value: selectedDepartmentId,
@@ -200,7 +211,7 @@ class _AddSubjectDialogState extends State<AddSubjectDialog> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text('Start Time:'),
+                const Text('Start Time:'),
                 TextButton(
                   onPressed: () async {
                     final TimeOfDay? picked = await showTimePicker(
@@ -220,7 +231,7 @@ class _AddSubjectDialogState extends State<AddSubjectDialog> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text('End Time:'),
+                const Text('End Time:'),
                 TextButton(
                   onPressed: () async {
                     final TimeOfDay? picked = await showTimePicker(
@@ -251,7 +262,7 @@ class _AddSubjectDialogState extends State<AddSubjectDialog> {
             print('Selected Days: $selectedDays');
             Navigator.of(context).pop();
           },
-          child: Text('Select'),
+          child: const Text('Select'),
         ),
       ],
     );
@@ -259,8 +270,18 @@ class _AddSubjectDialogState extends State<AddSubjectDialog> {
 }
 
 class StudentDayManagerPage extends StatefulWidget {
+  final String userId;
+
+  // Correct constructor with required userId parameter
+  const StudentDayManagerPage({Key? key, required this.userId})
+      : super(key: key);
+
   @override
   _StudentDayManagerPageState createState() => _StudentDayManagerPageState();
+
+  void addSubject(String subjectInfo) {
+    _StudentDayManagerPageState().addSubject(subjectInfo);
+  }
 }
 
 class _StudentDayManagerPageState extends State<StudentDayManagerPage> {
@@ -282,7 +303,7 @@ class _StudentDayManagerPageState extends State<StudentDayManagerPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Student Day Manager'),
+        title: const Text('Student Day Manager'),
       ),
       body: Center(
         child: Column(
@@ -293,15 +314,12 @@ class _StudentDayManagerPageState extends State<StudentDayManagerPage> {
                 showDialog(
                   context: context,
                   builder: (BuildContext context) {
-                    return AddSubjectDialog(
-                        //      onAddSubject: addSubject,
-                        );
+                    return AddSubjectDialog(userId: widget.userId);
                   },
                 );
               },
-              child: Text('Add Subject'),
+              child: const Text('Add Subject'),
             ),
-
             // Display added subjects as rectangular buttons
             Column(
               children: addedSubjects.asMap().entries.map((entry) {
@@ -325,29 +343,41 @@ class SubjectButton extends StatelessWidget {
   final Function()? onDelete;
 
   const SubjectButton({
+    Key? key,
     required this.subjectInfo,
     required this.onDelete,
-  });
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      margin: EdgeInsets.symmetric(vertical: 8.0),
-      padding: EdgeInsets.all(12.0),
+      margin: const EdgeInsets.symmetric(vertical: 8.0),
+      padding: const EdgeInsets.all(12.0),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(8.0),
         border: Border.all(color: Colors.grey),
       ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          const Text(
+            'Selected Subject:',
+            style: TextStyle(fontWeight: FontWeight.bold),
+          ),
+          const SizedBox(height: 4.0),
           Text(
             subjectInfo,
-            style: TextStyle(fontSize: 16.0),
+            style: const TextStyle(fontSize: 16.0),
           ),
-          GestureDetector(
-            onTap: onDelete,
-            child: Icon(Icons.clear),
+          const SizedBox(height: 8.0),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: [
+              GestureDetector(
+                onTap: onDelete,
+                child: const Icon(Icons.clear),
+              ),
+            ],
           ),
         ],
       ),
