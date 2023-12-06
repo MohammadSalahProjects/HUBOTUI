@@ -1,4 +1,4 @@
-// ignore_for_file: avoid_print
+// ignore_for_file: avoid_print, library_private_types_in_public_api, use_key_in_widget_constructors
 
 import 'dart:convert';
 
@@ -7,7 +7,9 @@ import 'package:http/http.dart' as http;
 
 class AddSubjectDialog extends StatefulWidget {
   final String userId;
-  const AddSubjectDialog({required this.userId});
+  final void Function(String) addSubject; // New named parameter
+
+  const AddSubjectDialog({required this.userId, required this.addSubject});
 
   @override
   _AddSubjectDialogState createState() => _AddSubjectDialogState();
@@ -21,6 +23,7 @@ class _AddSubjectDialogState extends State<AddSubjectDialog> {
   TimeOfDay? startTime;
   TimeOfDay? endTime;
   List<String> selectedDays = [];
+  late final String studentId;
 
   @override
   void initState() {
@@ -29,47 +32,74 @@ class _AddSubjectDialogState extends State<AddSubjectDialog> {
   }
 
   Future<void> addScheduleSubject() async {
+    const String studentDetailsApiUrl =
+        'http://192.168.1.114:8080/getStudentByUserId';
+
     final String apiUrl = 'http://192.168.1.9:8080/ScheduleSubjects/addSubject';
 
-    final Map<String, dynamic> requestData = {
-      'student': 'studentId', // Replace with actual student ID
-      'course': selectedCourseId,
-      'startTime': startTime.toString(),
-      'endTime': endTime.toString(),
-      'selectedDays': selectedDays,
-    };
-
     try {
-      final http.Response response = await http.post(
-        Uri.parse(apiUrl),
-        body: jsonEncode(requestData),
-        headers: {'Content-Type': 'application/json'},
-      );
+      final http.Response studentResponse = await http
+          .get(Uri.parse('$studentDetailsApiUrl?userId=${widget.userId}'));
 
-      if (response.statusCode == 200) {
-        String subjectDetails = 'Course: $selectedCourseId\n'
-            'Start Time: ${startTime.toString()}\n'
-            'End Time: ${endTime.toString()}\n'
-            'Days: ${selectedDays.join(', ')}';
+      if (studentResponse.statusCode == 200) {
+        final dynamic decodedResponse = jsonDecode(studentResponse.body);
+        final String studentId = decodedResponse['studentId'];
 
-        // Call the callback function to add the subject
-        StudentDayManagerPage(userId: widget.userId).addSubject(subjectDetails);
+        final Map<String, dynamic> requestData = {
+          'student': studentId,
+          'course': selectedCourseId,
+          'startTime': startTime.toString(),
+          'endTime': endTime.toString(),
+          'selectedDays': selectedDays,
+        };
 
-        print('Subject added successfully!');
-        Navigator.of(context).pop();
+        final http.Response response = await http.post(
+          Uri.parse(apiUrl),
+          body: jsonEncode(requestData),
+          headers: {'Content-Type': 'application/json'},
+        );
+
+        if (response.statusCode == 200) {
+          // Subject added successfully
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Subject added successfully'),
+              duration: Duration(seconds: 2),
+            ),
+          );
+        } else {
+          // Failed to add subject
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Failed to add subject: ${response.statusCode}'),
+              duration: Duration(seconds: 2),
+            ),
+          );
+        }
       } else {
-        print('Failed to add subject: ${response.statusCode}');
-        // Handle error cases here
+        // Failed to fetch student details
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+                'Failed to fetch student details: ${studentResponse.statusCode}'),
+            duration: Duration(seconds: 2),
+          ),
+        );
       }
     } catch (error) {
-      print('Error adding subject: $error');
       // Handle error cases here
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error: $error'),
+          duration: Duration(seconds: 2),
+        ),
+      );
     }
   }
 
   Future<void> fetchDepartments() async {
-    final String apiUrl =
-        'http://192.168.1.9:8080/department/getAllDepartments';
+    const String apiUrl =
+        'http://192.168.1.114:8080/department/getAllDepartments';
     try {
       final http.Response response = await http.get(Uri.parse(apiUrl));
       if (response.statusCode == 200) {
@@ -98,7 +128,7 @@ class _AddSubjectDialogState extends State<AddSubjectDialog> {
 
   Future<void> fetchCourses(String departmentId) async {
     final String apiUrl =
-        'http://192.168.1.9:8080/course/getAllCoursesInDepartment?departmentId=$departmentId';
+        'http://192.168.1.114:8080/course/getAllCoursesInDepartment?departmentId=$departmentId';
     try {
       final http.Response response = await http.get(Uri.parse(apiUrl));
       if (response.statusCode == 200) {
@@ -127,14 +157,14 @@ class _AddSubjectDialogState extends State<AddSubjectDialog> {
 
   Future<void> fetchStudentDetails(String userId) async {
     final String apiUrl =
-        'http://192.168.1.9:8080/getStudentByUserId?userName=$userId';
+        'http://192.168.1.114:8080/getStudentByUserId?userId=$userId';
 
     try {
       final http.Response response = await http.get(Uri.parse(apiUrl));
 
       if (response.statusCode == 200) {
         final dynamic decodedResponse = jsonDecode(response.body);
-        final String studentId = decodedResponse['studentId'];
+        studentId = decodedResponse['studentId'];
 
         // Use the retrieved student ID to create the ScheduleSubjects entry
         // Call the function to add ScheduleSubjects with the obtained studentId
@@ -254,12 +284,14 @@ class _AddSubjectDialogState extends State<AddSubjectDialog> {
       actions: [
         TextButton(
           onPressed: () {
-            // Print selected values and close dialog
-            print('Selected Department: $selectedDepartmentId');
-            print('Selected Course: $selectedCourseId');
-            print('Start Time: $startTime');
-            print('End Time: $endTime');
-            print('Selected Days: $selectedDays');
+            // Adding the subject and closing the dialog
+            String subjectDetails = 'Course: $selectedCourseId\n'
+                'Start Time: ${startTime.toString()}\n'
+                'End Time: ${endTime.toString()}\n'
+                'Days: ${selectedDays.join(', ')}';
+
+            widget.addSubject(
+                subjectDetails); // Using the provided function to add subject
             Navigator.of(context).pop();
           },
           child: const Text('Select'),
@@ -272,16 +304,11 @@ class _AddSubjectDialogState extends State<AddSubjectDialog> {
 class StudentDayManagerPage extends StatefulWidget {
   final String userId;
 
-  // Correct constructor with required userId parameter
   const StudentDayManagerPage({Key? key, required this.userId})
       : super(key: key);
 
   @override
   _StudentDayManagerPageState createState() => _StudentDayManagerPageState();
-
-  void addSubject(String subjectInfo) {
-    _StudentDayManagerPageState().addSubject(subjectInfo);
-  }
 }
 
 class _StudentDayManagerPageState extends State<StudentDayManagerPage> {
@@ -309,27 +336,37 @@ class _StudentDayManagerPageState extends State<StudentDayManagerPage> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            ElevatedButton(
-              onPressed: () {
-                showDialog(
-                  context: context,
-                  builder: (BuildContext context) {
-                    return AddSubjectDialog(userId: widget.userId);
-                  },
-                );
-              },
-              child: const Text('Add Subject'),
+            Expanded(
+              child: ListView(
+                children: addedSubjects.asMap().entries.map((entry) {
+                  int index = entry.key;
+                  String subjectInfo = entry.value;
+                  return SubjectButton(
+                    subjectInfo: subjectInfo,
+                    onDelete: () => deleteSubject(index),
+                  );
+                }).toList(),
+              ),
             ),
-            // Display added subjects as rectangular buttons
-            Column(
-              children: addedSubjects.asMap().entries.map((entry) {
-                int index = entry.key;
-                String subjectInfo = entry.value;
-                return SubjectButton(
-                  subjectInfo: subjectInfo,
-                  onDelete: () => deleteSubject(index),
-                );
-              }).toList(),
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(16.0),
+              color: Colors.blue,
+              child: ElevatedButton(
+                onPressed: () {
+                  showDialog(
+                    context: context,
+                    builder: (BuildContext context) {
+                      return AddSubjectDialog(
+                        userId: widget.userId,
+                        addSubject:
+                            addSubject, // Pass the addSubject method directly
+                      );
+                    },
+                  );
+                },
+                child: const Text('Add Subject'),
+              ),
             ),
           ],
         ),
