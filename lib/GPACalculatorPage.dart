@@ -53,14 +53,14 @@ class _GPACalculatorPageState extends State<GPACalculatorPage> {
       context: context,
       builder: (context) {
         return AlertDialog(
-          title: Text('GPA Calculation Result'),
+          title: const Text('GPA Calculation Result'),
           content: Text('Your GPA is: ${gpa.toStringAsFixed(2)}'),
           actions: [
             TextButton(
               onPressed: () {
                 Navigator.pop(context);
               },
-              child: Text('OK'),
+              child: const Text('OK'),
             ),
           ],
         );
@@ -85,11 +85,11 @@ class _GPACalculatorPageState extends State<GPACalculatorPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('GPA Calculator'),
+        title: const Text('GPA Calculator'),
       ),
       body: SingleChildScrollView(
         child: Padding(
-          padding: EdgeInsets.all(16.0),
+          padding: const EdgeInsets.all(16.0),
           child: Form(
             key: _formKey,
             child: Column(
@@ -97,7 +97,7 @@ class _GPACalculatorPageState extends State<GPACalculatorPage> {
               children: [
                 TextFormField(
                   controller: _previousPassedHoursController,
-                  decoration: InputDecoration(
+                  decoration: const InputDecoration(
                     labelText: 'Previous Passed Hours',
                   ),
                   keyboardType: TextInputType.number,
@@ -113,10 +113,11 @@ class _GPACalculatorPageState extends State<GPACalculatorPage> {
                 ),
                 TextFormField(
                   controller: _previousGPAController,
-                  decoration: InputDecoration(
+                  decoration: const InputDecoration(
                     labelText: 'Previous GPA',
                   ),
-                  keyboardType: TextInputType.numberWithOptions(decimal: true),
+                  keyboardType:
+                      const TextInputType.numberWithOptions(decimal: true),
                   validator: (value) {
                     if (value!.isEmpty) {
                       return 'Please enter the previous GPA';
@@ -127,18 +128,18 @@ class _GPACalculatorPageState extends State<GPACalculatorPage> {
                     return null;
                   },
                 ),
-                SizedBox(height: 20.0),
-                Text(
+                const SizedBox(height: 20.0),
+                const Text(
                   'Subjects',
                   style: TextStyle(
                     fontSize: 18.0,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
-                SizedBox(height: 10.0),
+                const SizedBox(height: 10.0),
                 ListView.builder(
                   shrinkWrap: true,
-                  physics: NeverScrollableScrollPhysics(),
+                  physics: const NeverScrollableScrollPhysics(),
                   itemCount: _subjectDataList.length,
                   itemBuilder: (context, index) {
                     return ListTile(
@@ -169,7 +170,7 @@ class _GPACalculatorPageState extends State<GPACalculatorPage> {
                       _showResultDialog(gpa);
                     }
                   },
-                  child: Text('Calculate GPA'),
+                  child: const Text('Calculate GPA'),
                 ),
                 ElevatedButton(
                   onPressed: () {
@@ -179,7 +180,7 @@ class _GPACalculatorPageState extends State<GPACalculatorPage> {
                       _subjectDataList.clear();
                     });
                   },
-                  child: Text('Clear'),
+                  child: const Text('Clear'),
                 ),
               ],
             ),
@@ -213,13 +214,13 @@ class _SubjectInputDialogState extends State<SubjectInputDialog> {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: Text('Add Subject'),
+      title: const Text('Add Subject'),
       content: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
           TextFormField(
             controller: _creditHoursController,
-            decoration: InputDecoration(
+            decoration: const InputDecoration(
               labelText: 'Credit Hours',
             ),
             keyboardType: TextInputType.number,
@@ -259,7 +260,7 @@ class _SubjectInputDialogState extends State<SubjectInputDialog> {
                 child: Text(value),
               );
             }).toList(),
-            decoration: InputDecoration(
+            decoration: const InputDecoration(
               labelText: 'Grade',
             ),
           ),
@@ -273,7 +274,7 @@ class _SubjectInputDialogState extends State<SubjectInputDialog> {
                   });
                 },
               ),
-              Text('Repeated Subject'),
+              const Text('Repeated Subject'),
             ],
           ),
         ],
@@ -283,7 +284,7 @@ class _SubjectInputDialogState extends State<SubjectInputDialog> {
           onPressed: () {
             Navigator.pop(context);
           },
-          child: Text('Cancel'),
+          child: const Text('Cancel'),
         ),
         ElevatedButton(
           onPressed: () {
@@ -302,7 +303,7 @@ class _SubjectInputDialogState extends State<SubjectInputDialog> {
               Navigator.pop(context);
             }
           },
-          child: Text('Add'),
+          child: const Text('Add'),
         ),
       ],
     );

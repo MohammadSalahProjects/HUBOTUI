@@ -170,7 +170,7 @@ class _StudentRegistrationPageState extends State<StudentRegistrationPage> {
                     _departmentsByFaculty[_selectedFaculty]?.map((department) {
                           return DropdownMenuItem(
                               value: department, child: Text(department));
-                        })?.toList() ??
+                        }).toList() ??
                         [],
                 onChanged: (value) {
                   setState(() {

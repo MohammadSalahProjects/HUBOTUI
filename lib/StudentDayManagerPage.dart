@@ -1,4 +1,4 @@
-// ignore_for_file: avoid_print, library_private_types_in_public_api, use_key_in_widget_constructors
+// ignore_for_file: avoid_print, library_private_types_in_public_api, use_key_in_widget_constructors, use_build_context_synchronously, unused_element
 
 import 'dart:convert';
 
@@ -33,9 +33,9 @@ class _AddSubjectDialogState extends State<AddSubjectDialog> {
 
   Future<void> addScheduleSubject() async {
     const String studentDetailsApiUrl =
-        'http://192.168.1.114:8080/getStudentByUserId';
+        'http://192.168.1.9:8080/registerStudent/getStudentById';
 
-    final String apiUrl = 'http://192.168.1.9:8080/ScheduleSubjects/addSubject';
+    const String apiUrl = 'http://192.168.1.9:8080/ScheduleSubjects/addSubject';
 
     try {
       final http.Response studentResponse = await http
@@ -62,7 +62,7 @@ class _AddSubjectDialogState extends State<AddSubjectDialog> {
         if (response.statusCode == 200) {
           // Subject added successfully
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
+            const SnackBar(
               content: Text('Subject added successfully'),
               duration: Duration(seconds: 2),
             ),
@@ -72,7 +72,7 @@ class _AddSubjectDialogState extends State<AddSubjectDialog> {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text('Failed to add subject: ${response.statusCode}'),
-              duration: Duration(seconds: 2),
+              duration: const Duration(seconds: 2),
             ),
           );
         }
@@ -82,7 +82,7 @@ class _AddSubjectDialogState extends State<AddSubjectDialog> {
           SnackBar(
             content: Text(
                 'Failed to fetch student details: ${studentResponse.statusCode}'),
-            duration: Duration(seconds: 2),
+            duration: const Duration(seconds: 2),
           ),
         );
       }
@@ -91,7 +91,7 @@ class _AddSubjectDialogState extends State<AddSubjectDialog> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Error: $error'),
-          duration: Duration(seconds: 2),
+          duration: const Duration(seconds: 2),
         ),
       );
     }
@@ -99,7 +99,7 @@ class _AddSubjectDialogState extends State<AddSubjectDialog> {
 
   Future<void> fetchDepartments() async {
     const String apiUrl =
-        'http://192.168.1.114:8080/department/getAllDepartments';
+        'http://192.168.1.9:8080/department/getAllDepartments';
     try {
       final http.Response response = await http.get(Uri.parse(apiUrl));
       if (response.statusCode == 200) {
@@ -128,7 +128,7 @@ class _AddSubjectDialogState extends State<AddSubjectDialog> {
 
   Future<void> fetchCourses(String departmentId) async {
     final String apiUrl =
-        'http://192.168.1.114:8080/course/getAllCoursesInDepartment?departmentId=$departmentId';
+        'http://192.168.1.9:8080/course/getAllCoursesInDepartment?departmentId=$departmentId';
     try {
       final http.Response response = await http.get(Uri.parse(apiUrl));
       if (response.statusCode == 200) {
@@ -157,7 +157,7 @@ class _AddSubjectDialogState extends State<AddSubjectDialog> {
 
   Future<void> fetchStudentDetails(String userId) async {
     final String apiUrl =
-        'http://192.168.1.114:8080/getStudentByUserId?userId=$userId';
+        'http://192.168.1.9:8080/registerStudent/getStudentByUserId?userId=$userId';
 
     try {
       final http.Response response = await http.get(Uri.parse(apiUrl));
@@ -283,16 +283,19 @@ class _AddSubjectDialogState extends State<AddSubjectDialog> {
       ),
       actions: [
         TextButton(
-          onPressed: () {
-            // Adding the subject and closing the dialog
-            String subjectDetails = 'Course: $selectedCourseId\n'
-                'Start Time: ${startTime.toString()}\n'
-                'End Time: ${endTime.toString()}\n'
-                'Days: ${selectedDays.join(', ')}';
-
-            widget.addSubject(
-                subjectDetails); // Using the provided function to add subject
-            Navigator.of(context).pop();
+          onPressed: () async {
+            try {
+              await addScheduleSubject(); // Call the method to add the subject to the database
+              Navigator.of(context)
+                  .pop(); // Close the dialog after adding the subject
+            } catch (error) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text('Error: $error'),
+                  duration: const Duration(seconds: 2),
+                ),
+              );
+            }
           },
           child: const Text('Select'),
         ),
