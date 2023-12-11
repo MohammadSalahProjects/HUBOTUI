@@ -1,4 +1,4 @@
-// ignore_for_file: avoid_print, library_private_types_in_public_api, use_key_in_widget_constructors, use_build_context_synchronously, unused_element
+// ignore_for_file: avoid_print, library_private_types_in_public_api, use_key_in_widget_constructors, use_build_context_synchronously, unused_element, use_super_parameters
 
 import 'dart:convert';
 
@@ -31,25 +31,39 @@ class _AddSubjectDialogState extends State<AddSubjectDialog> {
     fetchDepartments();
   }
 
+  String formatTimeOfDay(TimeOfDay timeOfDay) {
+    final String formattedHour = timeOfDay.hour.toString().padLeft(2, '0');
+    final String formattedMinute = timeOfDay.minute.toString().padLeft(2, '0');
+    return '$formattedHour:$formattedMinute';
+  }
+
   Future<void> addScheduleSubject() async {
     const String studentDetailsApiUrl =
-        'http://192.168.1.9:8080/registerStudent/getStudentById';
+        'http://192.168.1.9:8080/registerStudent/getStudentByUserId?id=';
 
     const String apiUrl = 'http://192.168.1.9:8080/ScheduleSubjects/addSubject';
 
-    try {
-      final http.Response studentResponse = await http
-          .get(Uri.parse('$studentDetailsApiUrl?userId=${widget.userId}'));
+    const String courseUrl =
+        'http://192.168.1.9:8080/course/getCourseById?courseId=';
 
-      if (studentResponse.statusCode == 200) {
+    try {
+      final http.Response studentResponse =
+          await http.get(Uri.parse('$studentDetailsApiUrl${widget.userId}'));
+
+      final http.Response courseResponse =
+          await http.get(Uri.parse('$courseUrl$selectedCourseId'));
+
+      if ((studentResponse.statusCode & courseResponse.statusCode) == 200) {
         final dynamic decodedResponse = jsonDecode(studentResponse.body);
-        final String studentId = decodedResponse['studentId'];
+        final String studentId = decodedResponse['id'];
+
+        final dynamic decodedCourseResponse = jsonDecode(courseResponse.body);
 
         final Map<String, dynamic> requestData = {
-          'student': studentId,
-          'course': selectedCourseId,
-          'startTime': startTime.toString(),
-          'endTime': endTime.toString(),
+          'student': decodedResponse,
+          'course': decodedCourseResponse,
+          'startTime': formatTimeOfDay(startTime!), // Formatting start time
+          'endTime': formatTimeOfDay(endTime!),
           'selectedDays': selectedDays,
         };
 
@@ -61,6 +75,7 @@ class _AddSubjectDialogState extends State<AddSubjectDialog> {
 
         if (response.statusCode == 200) {
           // Subject added successfully
+          // fetchSubjectsForUser(widget.userId);
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
               content: Text('Subject added successfully'),
@@ -71,7 +86,8 @@ class _AddSubjectDialogState extends State<AddSubjectDialog> {
           // Failed to add subject
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('Failed to add subject: ${response.statusCode}'),
+              content: Text(
+                  'Failed to add subject: ${studentId} ${response.statusCode}'),
               duration: const Duration(seconds: 2),
             ),
           );
@@ -155,16 +171,32 @@ class _AddSubjectDialogState extends State<AddSubjectDialog> {
     }
   }
 
+  Future<void> fetchCourse(String courseId) async {
+    final String apiUrl =
+        'http://192.168.1.9:8080/course/getCourseById?courseId=$courseId';
+    try {
+      final http.Response response = await http.get(Uri.parse(apiUrl));
+      if (response.statusCode == 200) {
+        final decodedResponse = jsonDecode(response.body);
+        return decodedResponse;
+      } else {
+        print('Failed to fetch courses: ${response.statusCode}');
+      }
+    } catch (error) {
+      print('Error fetching courses: $error');
+    }
+  }
+
   Future<void> fetchStudentDetails(String userId) async {
     final String apiUrl =
-        'http://192.168.1.9:8080/registerStudent/getStudentByUserId?userId=$userId';
+        'http://192.168.1.9:8080/registerStudent/getStudentByUserId?id=$userId';
 
     try {
       final http.Response response = await http.get(Uri.parse(apiUrl));
 
       if (response.statusCode == 200) {
         final dynamic decodedResponse = jsonDecode(response.body);
-        studentId = decodedResponse['studentId'];
+        studentId = decodedResponse['id'];
 
         // Use the retrieved student ID to create the ScheduleSubjects entry
         // Call the function to add ScheduleSubjects with the obtained studentId
@@ -317,6 +349,24 @@ class StudentDayManagerPage extends StatefulWidget {
 class _StudentDayManagerPageState extends State<StudentDayManagerPage> {
   List<String> addedSubjects = [];
 
+  @override
+  void initState() {
+    super.initState();
+    fetchSubjects(); // Call the method to fetch subjects for the current user
+  }
+
+  Future<void> fetchSubjects() async {
+    try {
+      List<String> subjects = await fetchSubjectsForUser(widget.userId);
+      setState(() {
+        addedSubjects = subjects;
+      });
+    } catch (error) {
+      // Handle error cases here
+      print('Error: $error');
+    }
+  }
+
   void addSubject(String subjectInfo) {
     setState(() {
       addedSubjects.add(subjectInfo);
@@ -422,5 +472,51 @@ class SubjectButton extends StatelessWidget {
         ],
       ),
     );
+  }
+}
+
+Future<List<String>> fetchSubjectsForUser(String userId) async {
+  final String getStudentUri =
+      'http://192.168.1.9:8080/registerStudent/getStudentByUserId?id=$userId';
+
+  final String apiUrl =
+      'http://192.168.1.9:8080/ScheduleSubjects/getSubjectForStudent?studentId=';
+
+  try {
+    final http.Response getStudentresponse =
+        await http.get(Uri.parse(getStudentUri));
+    if (getStudentresponse.statusCode == 200) {
+      final dynamic decodedResponseStudent =
+          jsonDecode(getStudentresponse.body);
+      final String studentID = decodedResponseStudent['id'];
+
+      final http.Response response =
+          await http.get(Uri.parse('$apiUrl$studentID'));
+      if (response.statusCode == 200) {
+        final List<dynamic> decodedResponse = jsonDecode(response.body);
+        List<String> subjects = decodedResponse.map<String>((subject) {
+          // Extract necessary information from the subject object
+          String courseName = subject['course']['courseName'];
+          List<int> startTime = List<int>.from(subject['startTime']);
+          List<int> endTime = List<int>.from(subject['endTime']);
+          List<String> selectedDays =
+              List<String>.from(subject['selectedDays']);
+
+          // Create the subject info string using the extracted data
+          return 'Course Name: $courseName\nStart Time: ${startTime[0]}:${startTime[1]}\nEnd Time: ${endTime[0]}:${endTime[1]}\nSelected Days: ${selectedDays.join(', ')}';
+        }).toList();
+
+        return subjects;
+      } else {
+        print('Failed to fetch subjects: ${response.statusCode}');
+        return [];
+      }
+    } else {
+      print('Failed to fetch userId: ${getStudentresponse.statusCode}');
+      return [];
+    }
+  } catch (error) {
+    print('Error fetching subjects: $error');
+    return [];
   }
 }
