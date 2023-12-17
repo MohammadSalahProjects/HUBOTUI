@@ -188,6 +188,25 @@ class _AddSubjectDialogState extends State<AddSubjectDialog> {
   }
 
   Future<void> fetchStudentDetails(String userId) async {
+    Future<String> fetchCourseIdByCourseName(String courseName) async {
+      final String apiUrl =
+          'http://192.168.1.9:8080/course/getCourseIdByCourseName?courseName=$courseName';
+
+      try {
+        final http.Response response = await http.get(Uri.parse(apiUrl));
+
+        if (response.statusCode == 200) {
+          return response.body;
+        } else {
+          print('Failed to fetch courseId: ${response.statusCode}');
+          return '';
+        }
+      } catch (error) {
+        print('Error fetching courseId: $error');
+        return '';
+      }
+    }
+
     final String apiUrl =
         'http://192.168.1.9:8080/registerStudent/getStudentByUserId?id=$userId';
 
@@ -349,34 +368,115 @@ class StudentDayManagerPage extends StatefulWidget {
 class _StudentDayManagerPageState extends State<StudentDayManagerPage> {
   List<String> addedSubjects = [];
 
-  @override
-  void initState() {
-    super.initState();
-    fetchSubjects(); // Call the method to fetch subjects for the current user
-  }
-
-  Future<void> fetchSubjects() async {
-    try {
-      List<String> subjects = await fetchSubjectsForUser(widget.userId);
-      setState(() {
-        addedSubjects = subjects;
-      });
-    } catch (error) {
-      // Handle error cases here
-      print('Error: $error');
-    }
-  }
-
   void addSubject(String subjectInfo) {
     setState(() {
       addedSubjects.add(subjectInfo);
     });
   }
 
-  void deleteSubject(int index) {
-    setState(() {
-      addedSubjects.removeAt(index);
-    });
+  Future<String?> fetchCourseIdByCourseName(String subjectInfo) async {
+    try {
+      List<String> splitSubject = subjectInfo.split(':');
+      if (splitSubject.length < 2) {
+        print('Invalid subject format2: $subjectInfo');
+        return null;
+      }
+
+      if (!subjectInfo.contains(':') || !subjectInfo.contains('\n')) {
+        print('Invalid subject format1: $subjectInfo');
+        return null;
+      }
+
+      String courseName = splitSubject[1].split('\n')[0].trim();
+      print(courseName);
+      final String apiUrl =
+          'http://192.168.1.9:8080/course/getCourseIdByCourseName?courseName=$courseName';
+
+      final http.Response response = await http.get(Uri.parse(apiUrl));
+      if (response.statusCode == 200) {
+        final dynamic decodedResponse = jsonDecode(response.body);
+        print(decodedResponse['id'].toString());
+
+        return decodedResponse['id'].toString();
+      } else {
+        print('Failed to fetch course ID: ${response.statusCode}');
+        return null; // Return null in case of failure
+      }
+    } catch (error) {
+      print('Error fetching course ID: $error');
+      return null; // Return null in case of error
+    }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _loadSubjects(); // Call the method to fetch subjects for the current user
+  }
+
+  Future<void> _loadSubjects() async {
+    try {
+      List<String> subjects = await fetchSubjectsForUser(widget.userId);
+      setState(() {
+        addedSubjects = subjects;
+      });
+    } catch (error) {
+      print('Error loading subjects: $error');
+      // Handle error cases here
+    }
+  }
+
+  Future<String> fetchStudentId(String userId) async {
+    final String apiUrl =
+        'http://192.168.1.9:8080/registerStudent/getStudentByUserId?id=$userId';
+
+    try {
+      final http.Response response = await http.get(Uri.parse(apiUrl));
+
+      if (response.statusCode == 200) {
+        final dynamic decodedResponse = jsonDecode(response.body);
+        return decodedResponse['id'];
+      } else {
+        print('Failed to fetch student details: ${response.statusCode}');
+        return '';
+      }
+    } catch (error) {
+      print('Error fetching student details: $error');
+      return '';
+    }
+  }
+
+  void deleteSubject(String subjectInfo) async {
+    String? courseId = await fetchCourseIdByCourseName(subjectInfo);
+    print(courseId);
+    if (courseId != null) {
+      print('entered');
+      String studentId = await fetchStudentId(widget.userId);
+      deleteSubjectFromBackend(courseId, studentId);
+    } else {
+      // Handle a null or empty courseId if needed
+      print('Failed to fetch course ID for $subjectInfo');
+    }
+  }
+
+  void deleteSubjectFromBackend(String courseId, String studentId) async {
+    final String apiUrl =
+        'http://192.168.1.9:8080/ScheduleSubjects/removeSubject';
+
+    try {
+      final http.Response response = await http.delete(
+        Uri.parse('$apiUrl?courseId=$courseId&studentId=$studentId'),
+      );
+
+      if (response.statusCode == 200) {
+        print('Subject deleted successfully');
+        fetchSubjectsForUser(widget.userId);
+      } else {
+        print('Failed to delete subject: ${response.statusCode}');
+      }
+    } catch (error) {
+      print('Error deleting subject: $error');
+    }
   }
 
   @override
@@ -391,12 +491,20 @@ class _StudentDayManagerPageState extends State<StudentDayManagerPage> {
           children: [
             Expanded(
               child: ListView(
-                children: addedSubjects.asMap().entries.map((entry) {
-                  int index = entry.key;
-                  String subjectInfo = entry.value;
+                children: addedSubjects.map((subjectInfo) {
                   return SubjectButton(
                     subjectInfo: subjectInfo,
-                    onDelete: () => deleteSubject(index),
+                    userId: widget.userId,
+                    onDelete: () async {
+                      String? courseId =
+                          await fetchCourseIdByCourseName(subjectInfo);
+                      if (courseId != null) {
+                        deleteSubject(courseId);
+                      } else {
+                        // Handle the case where courseId is null
+                        print('Course ID is null for $subjectInfo');
+                      }
+                    },
                   );
                 }).toList(),
               ),
@@ -412,8 +520,11 @@ class _StudentDayManagerPageState extends State<StudentDayManagerPage> {
                     builder: (BuildContext context) {
                       return AddSubjectDialog(
                         userId: widget.userId,
-                        addSubject:
-                            addSubject, // Pass the addSubject method directly
+                        addSubject: (String subjectInfo) {
+                          setState(() {
+                            addedSubjects.add(subjectInfo);
+                          });
+                        },
                       );
                     },
                   );
@@ -430,11 +541,13 @@ class _StudentDayManagerPageState extends State<StudentDayManagerPage> {
 
 class SubjectButton extends StatelessWidget {
   final String subjectInfo;
-  final Function()? onDelete;
+  final String userId;
+  final Function() onDelete;
 
   const SubjectButton({
     Key? key,
     required this.subjectInfo,
+    required this.userId,
     required this.onDelete,
   }) : super(key: key);
 
@@ -461,11 +574,16 @@ class SubjectButton extends StatelessWidget {
           ),
           const SizedBox(height: 8.0),
           Row(
-            mainAxisAlignment: MainAxisAlignment.end,
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               GestureDetector(
                 onTap: onDelete,
-                child: const Icon(Icons.clear),
+                child:
+                    const Icon(Icons.more_horiz), // Dots icon for more options
+              ),
+              GestureDetector(
+                onTap: onDelete, // Modify this to delete
+                child: const Icon(Icons.delete), // Delete icon
               ),
             ],
           ),
