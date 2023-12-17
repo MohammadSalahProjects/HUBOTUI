@@ -39,12 +39,13 @@ class _AddSubjectDialogState extends State<AddSubjectDialog> {
 
   Future<void> addScheduleSubject() async {
     const String studentDetailsApiUrl =
-        'http://192.168.1.9:8080/registerStudent/getStudentByUserId?id=';
+        'http://192.168.1.46:8080/registerStudent/getStudentByUserId?id=';
 
-    const String apiUrl = 'http://192.168.1.9:8080/ScheduleSubjects/addSubject';
+    const String apiUrl =
+        'http://192.168.1.46:8080/ScheduleSubjects/addSubject';
 
     const String courseUrl =
-        'http://192.168.1.9:8080/course/getCourseById?courseId=';
+        'http://192.168.1.46:8080/course/getCourseById?courseId=';
 
     try {
       final http.Response studentResponse =
@@ -115,7 +116,7 @@ class _AddSubjectDialogState extends State<AddSubjectDialog> {
 
   Future<void> fetchDepartments() async {
     const String apiUrl =
-        'http://192.168.1.9:8080/department/getAllDepartments';
+        'http://192.168.1.46:8080/department/getAllDepartments';
     try {
       final http.Response response = await http.get(Uri.parse(apiUrl));
       if (response.statusCode == 200) {
@@ -144,7 +145,7 @@ class _AddSubjectDialogState extends State<AddSubjectDialog> {
 
   Future<void> fetchCourses(String departmentId) async {
     final String apiUrl =
-        'http://192.168.1.9:8080/course/getAllCoursesInDepartment?departmentId=$departmentId';
+        'http://192.168.1.46:8080/course/getAllCoursesInDepartment?departmentId=$departmentId';
     try {
       final http.Response response = await http.get(Uri.parse(apiUrl));
       if (response.statusCode == 200) {
@@ -173,7 +174,7 @@ class _AddSubjectDialogState extends State<AddSubjectDialog> {
 
   Future<void> fetchCourse(String courseId) async {
     final String apiUrl =
-        'http://192.168.1.9:8080/course/getCourseById?courseId=$courseId';
+        'http://192.168.1.46:8080/course/getCourseById?courseId=$courseId';
     try {
       final http.Response response = await http.get(Uri.parse(apiUrl));
       if (response.statusCode == 200) {
@@ -190,7 +191,7 @@ class _AddSubjectDialogState extends State<AddSubjectDialog> {
   Future<void> fetchStudentDetails(String userId) async {
     Future<String> fetchCourseIdByCourseName(String courseName) async {
       final String apiUrl =
-          'http://192.168.1.9:8080/course/getCourseIdByCourseName?courseName=$courseName';
+          'http://192.168.1.46:8080/course/getCourseIdByCourseName?courseName=$courseName';
 
       try {
         final http.Response response = await http.get(Uri.parse(apiUrl));
@@ -208,7 +209,7 @@ class _AddSubjectDialogState extends State<AddSubjectDialog> {
     }
 
     final String apiUrl =
-        'http://192.168.1.9:8080/registerStudent/getStudentByUserId?id=$userId';
+        'http://192.168.1.46:8080/registerStudent/getStudentByUserId?id=$userId';
 
     try {
       final http.Response response = await http.get(Uri.parse(apiUrl));
@@ -376,21 +377,20 @@ class _StudentDayManagerPageState extends State<StudentDayManagerPage> {
 
   Future<String?> fetchCourseIdByCourseName(String subjectInfo) async {
     try {
+      if (!subjectInfo.contains(':') || !subjectInfo.contains('\n')) {
+        print('Invalid subject format1: $subjectInfo');
+        return null;
+      }
       List<String> splitSubject = subjectInfo.split(':');
       if (splitSubject.length < 2) {
         print('Invalid subject format2: $subjectInfo');
         return null;
       }
 
-      if (!subjectInfo.contains(':') || !subjectInfo.contains('\n')) {
-        print('Invalid subject format1: $subjectInfo');
-        return null;
-      }
-
       String courseName = splitSubject[1].split('\n')[0].trim();
       print(courseName);
       final String apiUrl =
-          'http://192.168.1.9:8080/course/getCourseIdByCourseName?courseName=$courseName';
+          'http://192.168.1.46:8080/course/getCourseIdByCourseName?courseName=$courseName';
 
       final http.Response response = await http.get(Uri.parse(apiUrl));
       if (response.statusCode == 200) {
@@ -428,7 +428,7 @@ class _StudentDayManagerPageState extends State<StudentDayManagerPage> {
 
   Future<String> fetchStudentId(String userId) async {
     final String apiUrl =
-        'http://192.168.1.9:8080/registerStudent/getStudentByUserId?id=$userId';
+        'http://192.168.1.46:8080/registerStudent/getStudentByUserId?id=$userId';
 
     try {
       final http.Response response = await http.get(Uri.parse(apiUrl));
@@ -446,22 +446,16 @@ class _StudentDayManagerPageState extends State<StudentDayManagerPage> {
     }
   }
 
-  void deleteSubject(String subjectInfo) async {
-    String? courseId = await fetchCourseIdByCourseName(subjectInfo);
+  void deleteSubject(String courseId) async {
     print(courseId);
-    if (courseId != null) {
-      print('entered');
-      String studentId = await fetchStudentId(widget.userId);
-      deleteSubjectFromBackend(courseId, studentId);
-    } else {
-      // Handle a null or empty courseId if needed
-      print('Failed to fetch course ID for $subjectInfo');
-    }
+    print('entered');
+    String studentId = await fetchStudentId(widget.userId);
+    deleteSubjectFromBackend(courseId, studentId);
   }
 
   void deleteSubjectFromBackend(String courseId, String studentId) async {
     final String apiUrl =
-        'http://192.168.1.9:8080/ScheduleSubjects/removeSubject';
+        'http://192.168.1.46:8080/ScheduleSubjects/removeSubject';
 
     try {
       final http.Response response = await http.delete(
@@ -471,6 +465,7 @@ class _StudentDayManagerPageState extends State<StudentDayManagerPage> {
       if (response.statusCode == 200) {
         print('Subject deleted successfully');
         fetchSubjectsForUser(widget.userId);
+        _loadSubjects();
       } else {
         print('Failed to delete subject: ${response.statusCode}');
       }
@@ -595,10 +590,10 @@ class SubjectButton extends StatelessWidget {
 
 Future<List<String>> fetchSubjectsForUser(String userId) async {
   final String getStudentUri =
-      'http://192.168.1.9:8080/registerStudent/getStudentByUserId?id=$userId';
+      'http://192.168.1.46:8080/registerStudent/getStudentByUserId?id=$userId';
 
   final String apiUrl =
-      'http://192.168.1.9:8080/ScheduleSubjects/getSubjectForStudent?studentId=';
+      'http://192.168.1.46:8080/ScheduleSubjects/getSubjectForStudent?studentId=';
 
   try {
     final http.Response getStudentresponse =
