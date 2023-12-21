@@ -1,4 +1,4 @@
-// ignore_for_file: use_build_context_synchronously, avoid_print, prefer_const_constructors, prefer_const_declarations, must_be_immutable, library_private_types_in_public_api, use_key_in_widget_constructors
+// ignore_for_file: prefer_const_constructors, use_build_context_synchronously, avoid_print, prefer_const_declarations
 
 import 'dart:convert';
 
@@ -42,28 +42,19 @@ class _StudentRegistrationScreenState extends State<StudentRegistrationScreen> {
     userId = widget.userId;
 
     // Initialize controllers
-
     firstNameController = TextEditingController();
-
     middleNameController = TextEditingController();
-
     lastNameController = TextEditingController();
-
     emailController = TextEditingController();
   }
 
   @override
   void dispose() {
     // Dispose controllers
-
     firstNameController.dispose();
-
     middleNameController.dispose();
-
     lastNameController.dispose();
-
     emailController.dispose();
-
     super.dispose();
   }
 
@@ -87,7 +78,6 @@ class _StudentRegistrationScreenState extends State<StudentRegistrationScreen> {
 
         setState(() {
           departmentDropdownItems = departments;
-
           selectedDepartmentId = departmentDropdownItems.isNotEmpty
               ? departmentDropdownItems[0].value!
               : ''; // Set default value if available
@@ -101,8 +91,31 @@ class _StudentRegistrationScreenState extends State<StudentRegistrationScreen> {
   }
 
   Future<void> registerStudent() async {
-    // Fetch the user ID
+    if (firstNameController.text.isEmpty ||
+        middleNameController.text.isEmpty ||
+        lastNameController.text.isEmpty ||
+        emailController.text.isEmpty) {
+      // Display error message if any field is empty
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Please fill in all fields'),
+        ),
+      );
+      return;
+    }
 
+    if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$')
+        .hasMatch(emailController.text)) {
+      // Display error message for invalid email format
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Please enter a valid email address'),
+        ),
+      );
+      return;
+    }
+
+    // Continue with registering the student if all validations pass
     final String studentApiUrl =
         'http://192.168.1.9:8080/registerStudent/createStudent';
 
@@ -133,15 +146,10 @@ class _StudentRegistrationScreenState extends State<StudentRegistrationScreen> {
         print('Student registered successfully');
 
         // Reset form after successful registration
-
         firstNameController.clear();
-
         middleNameController.clear();
-
         lastNameController.clear();
-
         emailController.clear();
-
         selectedGender = 'Male'; // Reset gender
 
         setState(() {
@@ -239,9 +247,7 @@ class _StudentRegistrationScreenState extends State<StudentRegistrationScreen> {
             ),
             SizedBox(height: 20),
             ElevatedButton(
-              onPressed: () {
-                registerStudent();
-              },
+              onPressed: registerStudent,
               child: Text('Register Student'),
             ),
           ],

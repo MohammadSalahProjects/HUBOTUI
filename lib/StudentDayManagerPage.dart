@@ -1,4 +1,4 @@
-// ignore_for_file: avoid_print, library_private_types_in_public_api, use_key_in_widget_constructors, use_build_context_synchronously, unused_element, use_super_parameters
+// ignore_for_file: avoid_print, library_private_types_in_public_api, use_key_in_widget_constructors, use_build_context_synchronously, unused_element, use_super_parameters, prefer_const_declarations
 
 import 'dart:convert';
 
@@ -7,7 +7,7 @@ import 'package:http/http.dart' as http;
 
 class AddSubjectDialog extends StatefulWidget {
   final String userId;
-  final void Function(String) addSubject; // New named parameter
+  final void Function(String) addSubject;
 
   const AddSubjectDialog({required this.userId, required this.addSubject});
 
@@ -39,13 +39,12 @@ class _AddSubjectDialogState extends State<AddSubjectDialog> {
 
   Future<void> addScheduleSubject() async {
     const String studentDetailsApiUrl =
-        'http://192.168.1.46:8080/registerStudent/getStudentByUserId?id=';
+        'http://192.168.1.9:8080/registerStudent/getStudentByUserId?id=';
 
-    const String apiUrl =
-        'http://192.168.1.46:8080/ScheduleSubjects/addSubject';
+    const String apiUrl = 'http://192.168.1.9:8080/ScheduleSubjects/addSubject';
 
     const String courseUrl =
-        'http://192.168.1.46:8080/course/getCourseById?courseId=';
+        'http://192.168.1.9:8080/course/getCourseById?courseId=';
 
     try {
       final http.Response studentResponse =
@@ -76,7 +75,6 @@ class _AddSubjectDialogState extends State<AddSubjectDialog> {
 
         if (response.statusCode == 200) {
           // Subject added successfully
-          // fetchSubjectsForUser(widget.userId);
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
               content: Text('Subject added successfully'),
@@ -116,7 +114,7 @@ class _AddSubjectDialogState extends State<AddSubjectDialog> {
 
   Future<void> fetchDepartments() async {
     const String apiUrl =
-        'http://192.168.1.46:8080/department/getAllDepartments';
+        'http://192.168.1.9:8080/department/getAllDepartments';
     try {
       final http.Response response = await http.get(Uri.parse(apiUrl));
       if (response.statusCode == 200) {
@@ -145,7 +143,7 @@ class _AddSubjectDialogState extends State<AddSubjectDialog> {
 
   Future<void> fetchCourses(String departmentId) async {
     final String apiUrl =
-        'http://192.168.1.46:8080/course/getAllCoursesInDepartment?departmentId=$departmentId';
+        'http://192.168.1.9:8080/course/getAllCoursesInDepartment?departmentId=$departmentId';
     try {
       final http.Response response = await http.get(Uri.parse(apiUrl));
       if (response.statusCode == 200) {
@@ -174,7 +172,7 @@ class _AddSubjectDialogState extends State<AddSubjectDialog> {
 
   Future<void> fetchCourse(String courseId) async {
     final String apiUrl =
-        'http://192.168.1.46:8080/course/getCourseById?courseId=$courseId';
+        'http://192.168.1.9:8080/course/getCourseById?courseId=$courseId';
     try {
       final http.Response response = await http.get(Uri.parse(apiUrl));
       if (response.statusCode == 200) {
@@ -191,7 +189,7 @@ class _AddSubjectDialogState extends State<AddSubjectDialog> {
   Future<void> fetchStudentDetails(String userId) async {
     Future<String> fetchCourseIdByCourseName(String courseName) async {
       final String apiUrl =
-          'http://192.168.1.46:8080/course/getCourseIdByCourseName?courseName=$courseName';
+          'http://192.168.1.9:8080/course/getCourseIdByCourseName?courseName=$courseName';
 
       try {
         final http.Response response = await http.get(Uri.parse(apiUrl));
@@ -209,7 +207,7 @@ class _AddSubjectDialogState extends State<AddSubjectDialog> {
     }
 
     final String apiUrl =
-        'http://192.168.1.46:8080/registerStudent/getStudentByUserId?id=$userId';
+        'http://192.168.1.9:8080/registerStudent/getStudentByUserId?id=$userId';
 
     try {
       final http.Response response = await http.get(Uri.parse(apiUrl));
@@ -390,7 +388,7 @@ class _StudentDayManagerPageState extends State<StudentDayManagerPage> {
       String courseName = splitSubject[1].split('\n')[0].trim();
       print(courseName);
       final String apiUrl =
-          'http://192.168.1.46:8080/course/getCourseIdByCourseName?courseName=$courseName';
+          'http://192.168.1.9:8080/course/getCourseIdByCourseName?courseName=$courseName';
 
       final http.Response response = await http.get(Uri.parse(apiUrl));
       if (response.statusCode == 200) {
@@ -422,13 +420,12 @@ class _StudentDayManagerPageState extends State<StudentDayManagerPage> {
       });
     } catch (error) {
       print('Error loading subjects: $error');
-      // Handle error cases here
     }
   }
 
   Future<String> fetchStudentId(String userId) async {
     final String apiUrl =
-        'http://192.168.1.46:8080/registerStudent/getStudentByUserId?id=$userId';
+        'http://192.168.1.9:8080/registerStudent/getStudentByUserId?id=$userId';
 
     try {
       final http.Response response = await http.get(Uri.parse(apiUrl));
@@ -455,7 +452,7 @@ class _StudentDayManagerPageState extends State<StudentDayManagerPage> {
 
   void deleteSubjectFromBackend(String courseId, String studentId) async {
     final String apiUrl =
-        'http://192.168.1.46:8080/ScheduleSubjects/removeSubject';
+        'http://192.168.1.9:8080/ScheduleSubjects/removeSubject';
 
     try {
       final http.Response response = await http.delete(
@@ -572,9 +569,10 @@ class SubjectButton extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               GestureDetector(
-                onTap: onDelete,
-                child:
-                    const Icon(Icons.more_horiz), // Dots icon for more options
+                child: Text(
+                  'Add Note',
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                ),
               ),
               GestureDetector(
                 onTap: onDelete, // Modify this to delete
@@ -590,10 +588,10 @@ class SubjectButton extends StatelessWidget {
 
 Future<List<String>> fetchSubjectsForUser(String userId) async {
   final String getStudentUri =
-      'http://192.168.1.46:8080/registerStudent/getStudentByUserId?id=$userId';
+      'http://192.168.1.9:8080/registerStudent/getStudentByUserId?id=$userId';
 
   final String apiUrl =
-      'http://192.168.1.46:8080/ScheduleSubjects/getSubjectForStudent?studentId=';
+      'http://192.168.1.9:8080/ScheduleSubjects/getSubjectForStudent?studentId=';
 
   try {
     final http.Response getStudentresponse =

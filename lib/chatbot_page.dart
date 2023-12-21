@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
+import 'package:http/http.dart' as http;
+import 'package:hubot/slide_menu.dart';
 
-import 'slide_menu.dart';
-
-class ChatPage extends StatelessWidget {
+class ChatPage extends StatefulWidget {
   final String userName;
   final String userId;
 
@@ -11,90 +10,7 @@ class ChatPage extends StatelessWidget {
       : super(key: key);
 
   @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      extendBodyBehindAppBar: true,
-      appBar: AppBar(
-        // actions: const [Icon(Icons.map)],
-        title: Text(
-          'Chat Page',
-          style: GoogleFonts.adamina(
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-              color: const Color.fromARGB(255, 227, 225, 225)),
-        ),
-        elevation: 0,
-        centerTitle: true,
-        backgroundColor: Colors.transparent.withOpacity(0.0),
-      ),
-      drawer: SlideMenu(
-        username: userName,
-        userId: userId,
-      ),
-      body: Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [Colors.purple.shade200, Colors.pink.shade200],
-          ),
-        ),
-        child: Column(
-          children: [
-            Expanded(
-              child: ListView(
-                reverse: true,
-                padding: const EdgeInsets.all(16.0),
-                children: const [
-                  MessageBubble(
-                    isSender: false,
-                    message: 'Hello! How can I assist you today?',
-                    time: '10:00 AM',
-                    imageUrl:
-                        'assets/images/cute-robot-operating-laptop-cartoon-icon.jpg',
-                  ),
-                  MessageBubble(
-                    isSender: true,
-                    message: 'Hi! I have a question about my GPA.',
-                    time: '10:02 AM',
-                    imageUrl:
-                        'assets/images/boy-face-avatar-cartoon-free-vector.jpg',
-                  ),
-                  // Add more message bubbles here
-                ],
-              ),
-            ),
-            Container(
-              color: Colors.transparent,
-              padding: const EdgeInsets.all(16.0),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: TextField(
-                      decoration: InputDecoration(
-                        filled: true,
-                        fillColor: Colors.grey[200],
-                        hintText: 'Type your message...',
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(20.0),
-                          borderSide: BorderSide.none,
-                        ),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 10.0),
-                  FloatingActionButton(
-                    onPressed: () {},
-                    child: const Icon(Icons.send),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
+  _ChatPageState createState() => _ChatPageState();
 }
 
 class MessageBubble extends StatelessWidget {
@@ -165,6 +81,144 @@ class MessageBubble extends StatelessWidget {
             ),
           ],
         ],
+      ),
+    );
+  }
+}
+
+class _ChatPageState extends State<ChatPage> {
+  TextEditingController _messageController = TextEditingController();
+  List<MessageBubble> messages = [];
+
+  @override
+  void initState() {
+    super.initState();
+    addInitialBotMessage();
+  }
+
+  void addInitialBotMessage() async {
+    String initialMessage =
+        'Hello! I\'m HUBOT. Ask me anything about the IT faculty 😊';
+    addMessageToChat(false, initialMessage, '10:00 AM',
+        'assets/images/cute-robot-operating-laptop-cartoon-icon.jpg');
+  }
+
+  void addMessageToChat(
+      bool isSender, String message, String time, String imageUrl) {
+    setState(() {
+      messages.insert(
+        0,
+        MessageBubble(
+          isSender: isSender,
+          message: message,
+          time: time,
+          imageUrl: imageUrl,
+        ),
+      );
+    });
+  }
+
+  void sendMessage(String text) async {
+    addMessageToChat(
+      true,
+      text,
+      '10:02 AM',
+      'assets/images/boy-face-avatar-cartoon-free-vector.jpg',
+    );
+
+    var response = await http.post(
+      Uri.parse('http://192.168.1.9:8080/api/chat?userInput=$text'),
+    );
+
+    if (response.statusCode == 200) {
+      addMessageToChat(
+        false,
+        response.body,
+        '10:03 AM',
+        'assets/images/cute-robot-operating-laptop-cartoon-icon.jpg',
+      );
+    } else {
+      print('Error: ${response.statusCode}');
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      extendBodyBehindAppBar: true,
+      appBar: AppBar(
+        title: Text(
+          'Chat Page',
+          style: TextStyle(
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+            color: const Color.fromARGB(255, 227, 225, 225),
+          ),
+        ),
+        elevation: 0,
+        centerTitle: true,
+        backgroundColor: Colors.transparent.withOpacity(0.0),
+      ),
+      drawer: Drawer(
+        child: SlideMenu(
+          username: widget.userName,
+          userId: widget.userId,
+        ),
+      ),
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [Colors.purple.shade200, Colors.pink.shade200],
+          ),
+        ),
+        child: Column(
+          children: [
+            Expanded(
+              child: ListView.builder(
+                reverse: true,
+                padding: const EdgeInsets.all(16.0),
+                itemCount: messages.length,
+                itemBuilder: (BuildContext context, int index) {
+                  return messages[index];
+                },
+              ),
+            ),
+            Container(
+              color: Colors.transparent,
+              padding: const EdgeInsets.all(16.0),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: TextField(
+                      controller: _messageController,
+                      decoration: InputDecoration(
+                        filled: true,
+                        fillColor: Colors.grey[200],
+                        hintText: 'Type your message...',
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(20.0),
+                          borderSide: BorderSide.none,
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 10.0),
+                  FloatingActionButton(
+                    onPressed: () {
+                      if (_messageController.text.isNotEmpty) {
+                        sendMessage(_messageController.text);
+                        _messageController.clear();
+                      }
+                    },
+                    child: const Icon(Icons.send),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

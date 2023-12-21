@@ -37,6 +37,7 @@ class _SignupScreenState extends State<SignupScreen> {
 
   Future<void> signUpUser() async {
     final String apiUrl = 'http://192.168.1.9:8080/user/createUser';
+    final String checkUserUrl = 'http://192.168.1.9:8080/user/getUser';
 
     final Map<String, String> userData = {
       'userName': usernameController.text,
@@ -47,53 +48,84 @@ class _SignupScreenState extends State<SignupScreen> {
       setState(() {
         passwordsMatch = false;
       });
+      return;
+    }
 
+    if (passwordController.text.length < 8 ||
+        usernameController.text.length < 8) {
+      setState(() {
+        // Set passwordsMatch to true to avoid the error message for mismatched passwords
+        passwordsMatch = true;
+      });
+      // Display error for passwords or username too short
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'Password and username must be at least 8 characters long',
+          ),
+        ),
+      );
       return;
     }
 
     try {
-      final http.Response response = await http.post(
-        Uri.parse(apiUrl),
+      // Check if username exists
+      final http.Response userCheckResponse = await http.get(
+        Uri.parse('$checkUserUrl?userName=${usernameController.text}'),
         headers: <String, String>{
           'Content-Type': 'application/json; charset=UTF-8',
         },
-        body: jsonEncode(userData),
       );
 
-      if (response.statusCode == 200) {
-        // Successful signup
-
-        print('User signed up successfully');
-
-        // Fetch user ID and navigate to the student registration screen
-
-        String userId = await fetchUserId(usernameController.text);
-
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => StudentRegistrationScreen(
-              userId:
-                  userId, // Pass the fetched user ID to StudentRegistrationScreen
-            ),
+      if (userCheckResponse.statusCode == 200) {
+        // Username exists, show error message
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Username already exists'),
           ),
         );
+        return;
+      } else if (userCheckResponse.statusCode == 404) {
+        // Username does not exist, proceed with signup
+        final http.Response response = await http.post(
+          Uri.parse(apiUrl),
+          headers: <String, String>{
+            'Content-Type': 'application/json; charset=UTF-8',
+          },
+          body: jsonEncode(userData),
+        );
 
-        // Optionally, you can clear the text fields after successful signup
+        if (response.statusCode == 200) {
+          // Successful signup
+          print('User signed up successfully');
 
-        usernameController.clear();
+          // Fetch user ID and navigate to the student registration screen
+          String userId = await fetchUserId(usernameController.text);
 
-        passwordController.clear();
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => StudentRegistrationScreen(
+                userId: userId,
+              ),
+            ),
+          );
+
+          // Clear the text fields after successful signup
+          usernameController.clear();
+          passwordController.clear();
+        } else {
+          // Unsuccessful signup
+          print('Failed to sign up user');
+          // Handle error or display a message to the user
+        }
       } else {
-        // Unsuccessful signup
-
-        print('Failed to sign up user');
-
-        // Handle error or display a message to the user
+        // Other error cases when checking username existence
+        print(
+            'Error checking username existence: ${userCheckResponse.statusCode}');
       }
     } catch (error) {
       // Handle any exceptions during the signup process
-
       print('Error signing up: $error');
     }
   }
