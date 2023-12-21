@@ -12,7 +12,7 @@ class LoginPage extends StatelessWidget {
 
   Future<String> fetchUserId(String username) async {
     final String apiUrl =
-        'http://192.168.1.9:8080/user/getUserID?userName=$username';
+        'http://192.168.1.46:8080/user/getUserID?userName=$username';
 
     try {
       final http.Response response = await http.get(
@@ -42,7 +42,7 @@ class LoginPage extends StatelessWidget {
 
   Future<String> fetchName(String userId) async {
     final String apiUrl =
-        'http://192.168.1.9:8080/registerStudent/getName?userId=$userId';
+        'http://192.168.1.46:8080/registerStudent/getName?userId=$userId';
 
     try {
       final http.Response response = await http.get(
@@ -69,7 +69,7 @@ class LoginPage extends StatelessWidget {
       String userId) async {
     print('Attempting login for $username'); // Add this print statement
 
-    final url = Uri.parse('http://192.168.1.9:8080/user/login');
+    final url = Uri.parse('http://192.168.1.46:8080/user/login');
 
     try {
       final response = await http.post(

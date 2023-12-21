@@ -127,7 +127,7 @@ class _ChatPageState extends State<ChatPage> {
     );
 
     var response = await http.post(
-      Uri.parse('http://192.168.1.9:8080/api/chat?userInput=$text'),
+      Uri.parse('http://192.168.1.46:8080/api/chat?userInput=$text'),
     );
 
     if (response.statusCode == 200) {
