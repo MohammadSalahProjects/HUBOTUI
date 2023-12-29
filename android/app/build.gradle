@@ -45,7 +45,7 @@ compileSdkVersion flutter.compileSdkVersion.toInteger()
 
     defaultConfig {
         applicationId "com.example.hubot"
-        minSdkVersion flutter.minSdkVersion
+        minSdk 20 
         targetSdkVersion flutter.targetSdkVersion
         versionCode flutterVersionCode.toInteger()
         versionName flutterVersionName

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:hubot/campusmap.dart';
 
 import 'GPACalculatorPage.dart';
 import 'StudentDayManagerPage.dart';
@@ -16,7 +17,7 @@ class SlideMenu extends StatelessWidget {
 
   Future<String> getUserGender(String userId) async {
     final String apiUrl =
-        'http://192.168.43.199:8080/registerStudent/getGender?userId=$userId';
+        'http://192.168.1.15:8080/registerStudent/getGender?userId=$userId';
 
     try {
       final http.Response response = await http.get(
@@ -134,7 +135,10 @@ class SlideMenu extends StatelessWidget {
                   title: const Text('Campus Map'),
                   onTap: () {
                     Navigator.pop(context);
-                    // Navigate to Campus Map page
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => MapScreen()),
+                    );
                   },
                 ),
                 const Divider(),
