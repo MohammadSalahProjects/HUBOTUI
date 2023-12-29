@@ -60,7 +60,7 @@ class _StudentRegistrationScreenState extends State<StudentRegistrationScreen> {
 
   Future<void> fetchDepartments() async {
     final String apiUrl =
-        'http://192.168.1.46:8080/department/getDepartmentsByFaculty?facultyId=64e8a5085608901b630a4da6';
+        'http://192.168.43.199:8080/department/getDepartmentsByFaculty?facultyId=64e8a5085608901b630a4da6';
 
     try {
       final http.Response response = await http.get(Uri.parse(apiUrl));
@@ -117,7 +117,7 @@ class _StudentRegistrationScreenState extends State<StudentRegistrationScreen> {
 
     // Continue with registering the student if all validations pass
     final String studentApiUrl =
-        'http://192.168.1.46:8080/registerStudent/createStudent';
+        'http://192.168.43.199:8080/registerStudent/createStudent';
 
     final Map<String, dynamic> studentData = {
       'user': {
@@ -176,81 +176,84 @@ class _StudentRegistrationScreenState extends State<StudentRegistrationScreen> {
       appBar: AppBar(
         title: Text('Student Registration'),
       ),
-      body: Padding(
-        padding: EdgeInsets.all(16.0),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: <Widget>[
-            DropdownButtonFormField<String>(
-              value: selectedDepartmentId,
-              items: departmentDropdownItems,
-              onChanged: (String? value) {
-                setState(() {
-                  selectedDepartmentId = value!;
-                });
-              },
-              decoration: InputDecoration(
-                labelText: 'Choose Department',
-                border: OutlineInputBorder(),
+      body: SingleChildScrollView(
+        child: Padding(
+          padding: EdgeInsets.all(16.0),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: <Widget>[
+              DropdownButtonFormField<String>(
+                value: selectedDepartmentId,
+                items: departmentDropdownItems,
+                onChanged: (String? value) {
+                  setState(() {
+                    selectedDepartmentId = value!;
+                  });
+                },
+                decoration: InputDecoration(
+                  labelText: 'Choose Department',
+                  border: OutlineInputBorder(),
+                ),
               ),
-            ),
-            TextFormField(
-              controller: firstNameController,
-              decoration: InputDecoration(
-                labelText: 'First Name',
-                border: OutlineInputBorder(),
+              SizedBox(height: 12),
+              TextFormField(
+                controller: firstNameController,
+                decoration: InputDecoration(
+                  labelText: 'First Name',
+                  border: OutlineInputBorder(),
+                ),
               ),
-            ),
-            SizedBox(height: 12),
-            TextFormField(
-              controller: middleNameController,
-              decoration: InputDecoration(
-                labelText: 'Middle Name',
-                border: OutlineInputBorder(),
+              SizedBox(height: 12),
+              TextFormField(
+                controller: middleNameController,
+                decoration: InputDecoration(
+                  labelText: 'Middle Name',
+                  border: OutlineInputBorder(),
+                ),
               ),
-            ),
-            SizedBox(height: 12),
-            TextFormField(
-              controller: lastNameController,
-              decoration: InputDecoration(
-                labelText: 'Last Name',
-                border: OutlineInputBorder(),
+              SizedBox(height: 12),
+              TextFormField(
+                controller: lastNameController,
+                decoration: InputDecoration(
+                  labelText: 'Last Name',
+                  border: OutlineInputBorder(),
+                ),
               ),
-            ),
-            SizedBox(height: 12),
-            TextFormField(
-              controller: emailController,
-              decoration: InputDecoration(
-                labelText: 'Email',
-                border: OutlineInputBorder(),
+              SizedBox(height: 12),
+              TextFormField(
+                controller: emailController,
+                decoration: InputDecoration(
+                  labelText: 'Email',
+                  border: OutlineInputBorder(),
+                ),
               ),
-            ),
-            SizedBox(height: 12),
-            DropdownButtonFormField<String>(
-              value: selectedGender,
-              items: ['Male', 'Female'].map((String gender) {
-                return DropdownMenuItem<String>(
-                  value: gender,
-                  child: Text(gender),
-                );
-              }).toList(),
-              onChanged: (String? value) {
-                setState(() {
-                  selectedGender = value!;
-                });
-              },
-              decoration: InputDecoration(
-                labelText: 'Choose Gender',
-                border: OutlineInputBorder(),
+              SizedBox(height: 12),
+              DropdownButtonFormField<String>(
+                value: selectedGender,
+                items: ['Male', 'Female'].map((String gender) {
+                  return DropdownMenuItem<String>(
+                    value: gender,
+                    child: Text(gender),
+                  );
+                }).toList(),
+                onChanged: (String? value) {
+                  setState(() {
+                    selectedGender = value!;
+                  });
+                },
+                decoration: InputDecoration(
+                  labelText: 'Choose Gender',
+                  border: OutlineInputBorder(),
+                ),
               ),
-            ),
-            SizedBox(height: 20),
-            ElevatedButton(
-              onPressed: registerStudent,
-              child: Text('Register Student'),
-            ),
-          ],
+              SizedBox(height: 20),
+              ElevatedButton(
+                onPressed: registerStudent,
+                child: Text('Register Student'),
+              ),
+            ],
+          ),
         ),
       ),
     );

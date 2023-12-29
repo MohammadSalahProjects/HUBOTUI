@@ -26,7 +26,7 @@ class _NotePageState extends State<NotePage> {
   }
 
   Future<void> fetchExistingNote() async {
-    final String apiUrl = 'http://192.168.1.46:8080/note/getNote';
+    final String apiUrl = 'http://192.168.43.199:8080/note/getNote';
     try {
       final http.Response response = await http.get(Uri.parse(
           '$apiUrl?studentId=${widget.studentId}&subjectId=${widget.subjectId}'));
@@ -46,7 +46,7 @@ class _NotePageState extends State<NotePage> {
   }
 
   Future<void> updateNote() async {
-    final String apiUrl = 'http://192.168.1.46:8080/note/updateNote';
+    final String apiUrl = 'http://192.168.43.199:8080/note/updateNote';
     try {
       final http.Response response = await http.put(
         Uri.parse('$apiUrl?noteId=$widget.subjectId'),
