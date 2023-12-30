@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
-import 'package:hubot/slide_menu.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class ChatPage extends StatefulWidget {
   final String userName;
@@ -29,6 +29,17 @@ class MessageBubble extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final RegExp urlRegExp =
+        RegExp(r'(?:(?:https?|ftp):\/\/)?[\w/\-?=%.]+\.[\w/\-?=%.]+');
+
+    Future<void> _handleUrlTap(String url) async {
+      if (await canLaunch(url)) {
+        await launch(url);
+      } else {
+        throw 'Could not launch $url';
+      }
+    }
+
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0),
       child: Row(
@@ -43,33 +54,45 @@ class MessageBubble extends StatelessWidget {
             const SizedBox(width: 8.0),
           ],
           Flexible(
-            child: Container(
-              decoration: BoxDecoration(
-                color: isSender ? Colors.purple.shade100 : Colors.white,
-                borderRadius: BorderRadius.circular(12.0),
-              ),
-              padding: const EdgeInsets.all(12.0),
-              child: Column(
-                crossAxisAlignment: isSender
-                    ? CrossAxisAlignment.end
-                    : CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    message,
-                    style: TextStyle(
-                      fontSize: 16.0,
-                      color: isSender ? Colors.black : Colors.purple,
+            child: GestureDetector(
+              onTap: () {
+                final Iterable<RegExpMatch> matches =
+                    urlRegExp.allMatches(message);
+                if (matches.isNotEmpty) {
+                  for (RegExpMatch match in matches) {
+                    final String url = match.group(0)!;
+                    _handleUrlTap(url);
+                  }
+                }
+              },
+              child: Container(
+                decoration: BoxDecoration(
+                  color: isSender ? Colors.purple.shade100 : Colors.white,
+                  borderRadius: BorderRadius.circular(12.0),
+                ),
+                padding: const EdgeInsets.all(12.0),
+                child: Column(
+                  crossAxisAlignment: isSender
+                      ? CrossAxisAlignment.end
+                      : CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      message,
+                      style: TextStyle(
+                        fontSize: 16.0,
+                        color: isSender ? Colors.black : Colors.purple,
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 4.0),
-                  Text(
-                    time,
-                    style: TextStyle(
-                      fontSize: 12.0,
-                      color: Colors.grey[600],
+                    const SizedBox(height: 4.0),
+                    Text(
+                      time,
+                      style: TextStyle(
+                        fontSize: 12.0,
+                        color: Colors.grey[600],
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
           ),
@@ -127,7 +150,7 @@ class _ChatPageState extends State<ChatPage> {
     );
 
     var response = await http.post(
-      Uri.parse('http://192.168.1.57:8080/api/chat?userInput=$text'),
+      Uri.parse('http://192.168.1.9:8080/api/chat?userInput=$text'),
     );
 
     if (response.statusCode == 200) {
@@ -159,12 +182,6 @@ class _ChatPageState extends State<ChatPage> {
         centerTitle: true,
         backgroundColor: Colors.transparent.withOpacity(0.0),
       ),
-      drawer: Drawer(
-        child: SlideMenu(
-          username: widget.userName,
-          userId: widget.userId,
-        ),
-      ),
       body: Container(
         decoration: BoxDecoration(
           gradient: LinearGradient(
@@ -181,7 +198,12 @@ class _ChatPageState extends State<ChatPage> {
                 padding: const EdgeInsets.all(16.0),
                 itemCount: messages.length,
                 itemBuilder: (BuildContext context, int index) {
-                  return messages[index];
+                  return MessageBubble(
+                    isSender: messages[index].isSender,
+                    message: messages[index].message,
+                    time: messages[index].time,
+                    imageUrl: messages[index].imageUrl,
+                  );
                 },
               ),
             ),
