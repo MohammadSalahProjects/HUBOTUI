@@ -65,9 +65,9 @@ class _StudentRegistrationPageState extends State<StudentRegistrationPage> {
 
   Future<void> fetchFacultiesAndDepartments() async {
     final facultiesResponse = await http
-        .get(Uri.parse('http://192.168.1.9:8080/faculty/getAllFaculties'));
+        .get(Uri.parse('http://192.168.1.4:8080/faculty/getAllFaculties'));
     final departmentsResponse = await http
-        .get(Uri.parse('http://192.168.1.9:8080/department/getAllDepartments'));
+        .get(Uri.parse('http://192.168.1.4:8080/department/getAllDepartments'));
 
     if (facultiesResponse.statusCode == 200 &&
         departmentsResponse.statusCode == 200) {
