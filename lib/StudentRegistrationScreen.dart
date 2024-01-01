@@ -60,7 +60,7 @@ class _StudentRegistrationScreenState extends State<StudentRegistrationScreen> {
 
   Future<void> fetchDepartments() async {
     final String apiUrl =
-        'http://192.168.1.9:8080/department/getDepartmentsByFaculty?facultyId=64e8a5085608901b630a4da6';
+        'https://aa5d-176-29-208-189.ngrok-free.app/department/getDepartmentsByFaculty?facultyId=64e8a5085608901b630a4da6';
 
     try {
       final http.Response response = await http.get(Uri.parse(apiUrl));
@@ -117,7 +117,7 @@ class _StudentRegistrationScreenState extends State<StudentRegistrationScreen> {
 
     // Continue with registering the student if all validations pass
     final String studentApiUrl =
-        'http://192.168.1.9:8080/registerStudent/createStudent';
+        'https://aa5d-176-29-208-189.ngrok-free.app/registerStudent/createStudent';
 
     final Map<String, dynamic> studentData = {
       'user': {
