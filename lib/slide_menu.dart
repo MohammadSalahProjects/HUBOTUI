@@ -17,7 +17,7 @@ class SlideMenu extends StatelessWidget {
 
   Future<String> getUserGender(String userId) async {
     final String apiUrl =
-        'http://192.168.1.4:8080/registerStudent/getGender?userId=$userId';
+        'https://aa5d-176-29-208-189.ngrok-free.app/registerStudent/getGender?userId=$userId';
 
     try {
       final http.Response response = await http.get(

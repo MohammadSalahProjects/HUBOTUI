@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:url_launcher/url_launcher.dart';
+import 'package:hubot/slide_menu.dart';
 
 class ChatPage extends StatefulWidget {
   final String userName;
@@ -150,7 +151,7 @@ class _ChatPageState extends State<ChatPage> {
     );
 
     var response = await http.post(
-      Uri.parse('http://192.168.1.4:8080/api/chat?userInput=$text'),
+      Uri.parse('https://aa5d-176-29-208-189.ngrok-free.app/api/chat?userInput=$text'),
     );
 
     if (response.statusCode == 200) {
@@ -168,6 +169,12 @@ class _ChatPageState extends State<ChatPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      drawer: Drawer(
+        child: SlideMenu(
+          username: widget.userName,
+          userId: widget.userId,
+        ),
+      ),
       extendBodyBehindAppBar: true,
       appBar: AppBar(
         title: Text(
