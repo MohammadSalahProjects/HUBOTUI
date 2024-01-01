@@ -36,8 +36,8 @@ class _SignupScreenState extends State<SignupScreen> {
   }
 
   Future<void> signUpUser() async {
-    final String apiUrl = 'https://aa5d-176-29-208-189.ngrok-free.app/user/createUser';
-    final String checkUserUrl = 'https://aa5d-176-29-208-189.ngrok-free.app/user/getUser';
+    final String apiUrl = 'https://0be0-176-29-208-189.ngrok-free.app/user/createUser';
+    final String checkUserUrl = 'https://0be0-176-29-208-189.ngrok-free.app/user/getUser';
 
     final Map<String, String> userData = {
       'userName': usernameController.text,
@@ -184,7 +184,7 @@ class _SignupScreenState extends State<SignupScreen> {
 
   Future<String> fetchUserId(String username) async {
     final String apiUrl =
-        'https://aa5d-176-29-208-189.ngrok-free.app/user/getUserID?userName=$username';
+        'https://0be0-176-29-208-189.ngrok-free.app/user/getUserID?userName=$username';
 
     try {
       final http.Response response = await http.get(
