@@ -151,7 +151,7 @@ class _ChatPageState extends State<ChatPage> {
     );
 
     var response = await http.post(
-      Uri.parse('https://9f93-176-29-208-189.ngrok-free.app/api/chat?userInput=$text'),
+      Uri.parse('https://768f-2a01-9700-1a9a-7800-5b0-d5cd-7f59-3613.ngrok-free.app/api/chat?userInput=$text'),
     );
 
     if (response.statusCode == 200) {

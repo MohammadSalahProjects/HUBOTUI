@@ -47,12 +47,12 @@ class _AddSubjectDialogState extends State<AddSubjectDialog> {
 
   Future<void> addScheduleSubject() async {
     const String studentDetailsApiUrl =
-        'https://9f93-176-29-208-189.ngrok-free.app/registerStudent/getStudentByUserId?id=';
+        'https://768f-2a01-9700-1a9a-7800-5b0-d5cd-7f59-3613.ngrok-free.app/registerStudent/getStudentByUserId?id=';
 
-    const String apiUrl = 'https://9f93-176-29-208-189.ngrok-free.app/ScheduleSubjects/addSubject';
+    const String apiUrl = 'https://768f-2a01-9700-1a9a-7800-5b0-d5cd-7f59-3613.ngrok-free.app/ScheduleSubjects/addSubject';
 
     const String courseUrl =
-        'https://9f93-176-29-208-189.ngrok-free.app/course/getCourseById?courseId=';
+        'https://768f-2a01-9700-1a9a-7800-5b0-d5cd-7f59-3613.ngrok-free.app/course/getCourseById?courseId=';
 
     try {
       final http.Response studentResponse =
@@ -123,7 +123,7 @@ class _AddSubjectDialogState extends State<AddSubjectDialog> {
 
   Future<void> fetchDepartments() async {
     const String apiUrl =
-        'hhttps://9f93-176-29-208-189.ngrok-free.app/department/getAllDepartments';
+        'https://768f-2a01-9700-1a9a-7800-5b0-d5cd-7f59-3613.ngrok-free.app/department/getAllDepartments';
     try {
       final http.Response response = await http.get(Uri.parse(apiUrl));
       if (response.statusCode == 200) {
@@ -152,7 +152,7 @@ class _AddSubjectDialogState extends State<AddSubjectDialog> {
 
   Future<void> fetchCourses(String departmentId) async {
     final String apiUrl =
-        'https://9f93-176-29-208-189.ngrok-free.app/course/getAllCoursesInDepartment?departmentId=$departmentId';
+        'https://768f-2a01-9700-1a9a-7800-5b0-d5cd-7f59-3613.ngrok-free.app/course/getAllCoursesInDepartment?departmentId=$departmentId';
     try {
       final http.Response response = await http.get(Uri.parse(apiUrl));
       if (response.statusCode == 200) {
@@ -181,7 +181,7 @@ class _AddSubjectDialogState extends State<AddSubjectDialog> {
 
   Future<void> fetchCourse(String courseId) async {
     final String apiUrl =
-        'https://9f93-176-29-208-189.ngrok-free.app/course/getCourseById?courseId=$courseId';
+        'https://768f-2a01-9700-1a9a-7800-5b0-d5cd-7f59-3613.ngrok-free.app/course/getCourseById?courseId=$courseId';
     try {
       final http.Response response = await http.get(Uri.parse(apiUrl));
       if (response.statusCode == 200) {
@@ -198,7 +198,7 @@ class _AddSubjectDialogState extends State<AddSubjectDialog> {
   Future<void> fetchStudentDetails(String userId) async {
     Future<String> fetchCourseIdByCourseName(String courseName) async {
       final String apiUrl =
-          'https://9f93-176-29-208-189.ngrok-free.app/course/getCourseIdByCourseName?courseName=$courseName';
+          'https://768f-2a01-9700-1a9a-7800-5b0-d5cd-7f59-3613.ngrok-free.app/course/getCourseIdByCourseName?courseName=$courseName';
 
       try {
         final http.Response response = await http.get(Uri.parse(apiUrl));
@@ -216,7 +216,7 @@ class _AddSubjectDialogState extends State<AddSubjectDialog> {
     }
 
     final String apiUrl =
-        'https://9f93-176-29-208-189.ngrok-free.app/registerStudent/getStudentByUserId?id=$userId';
+        'https://768f-2a01-9700-1a9a-7800-5b0-d5cd-7f59-3613.ngrok-free.app/registerStudent/getStudentByUserId?id=$userId';
 
     try {
       final http.Response response = await http.get(Uri.parse(apiUrl));
@@ -423,7 +423,7 @@ class _StudentDayManagerPageState extends State<StudentDayManagerPage> {
       String courseName = splitSubject[1].split('\n')[0].trim();
       print(courseName);
       final String apiUrl =
-          'https://9f93-176-29-208-189.ngrok-free.app/course/getCourseIdByCourseName?courseName=$courseName';
+          'https://768f-2a01-9700-1a9a-7800-5b0-d5cd-7f59-3613.ngrok-free.app/course/getCourseIdByCourseName?courseName=$courseName';
 
       final http.Response response = await http.get(Uri.parse(apiUrl));
       if (response.statusCode == 200) {
@@ -467,7 +467,7 @@ class _StudentDayManagerPageState extends State<StudentDayManagerPage> {
 
   Future<String> fetchStudentId(String userId) async {
     final String apiUrl =
-        'https://9f93-176-29-208-189.ngrok-free.app/registerStudent/getStudentByUserId?id=$userId';
+        'https://768f-2a01-9700-1a9a-7800-5b0-d5cd-7f59-3613.ngrok-free.app/registerStudent/getStudentByUserId?id=$userId';
 
     try {
       final http.Response response = await http.get(Uri.parse(apiUrl));
@@ -494,7 +494,7 @@ class _StudentDayManagerPageState extends State<StudentDayManagerPage> {
 
   void deleteSubjectFromBackend(String courseId, String studentId) async {
     final String apiUrl =
-        'https://9f93-176-29-208-189.ngrok-free.app/ScheduleSubjects/removeSubject';
+        'https://768f-2a01-9700-1a9a-7800-5b0-d5cd-7f59-3613.ngrok-free.app/ScheduleSubjects/removeSubject';
 
     try {
       final http.Response response = await http.delete(
@@ -626,10 +626,10 @@ class SubjectButton extends StatelessWidget {
 
 Future<List<String>> fetchSubjectsForUser(String userId) async {
   final String getStudentUri =
-      'https://9f93-176-29-208-189.ngrok-free.app/registerStudent/getStudentByUserId?id=$userId';
+      'https://768f-2a01-9700-1a9a-7800-5b0-d5cd-7f59-3613.ngrok-free.app/registerStudent/getStudentByUserId?id=$userId';
 
   final String apiUrl =
-      'https://9f93-176-29-208-189.ngrok-free.app/ScheduleSubjects/getSubjectForStudent?studentId=';
+      'https://768f-2a01-9700-1a9a-7800-5b0-d5cd-7f59-3613.ngrok-free.app/ScheduleSubjects/getSubjectForStudent?studentId=';
 
   try {
     final http.Response getStudentresponse =

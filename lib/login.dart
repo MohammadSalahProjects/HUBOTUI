@@ -12,7 +12,7 @@ class LoginPage extends StatelessWidget {
 
   Future<String> fetchUserId(String username) async {
     final String apiUrl =
-        'https://https://9f93-176-29-208-189.ngrok-free.app/user/getUserID?userName=$username';
+        'https://768f-2a01-9700-1a9a-7800-5b0-d5cd-7f59-3613.ngrok-free.app/user/getUserID?userName=$username';
 
     try {
       final http.Response response = await http.get(
@@ -42,7 +42,7 @@ class LoginPage extends StatelessWidget {
 
   Future<String> fetchName(String userId) async {
     final String apiUrl =
-        'https://9f93-176-29-208-189.ngrok-free.app/registerStudent/getName?userId=$userId';
+        'https://768f-2a01-9700-1a9a-7800-5b0-d5cd-7f59-3613.ngrok-free.app/registerStudent/getName?userId=$userId';
 
     try {
       final http.Response response = await http.get(
@@ -69,7 +69,7 @@ class LoginPage extends StatelessWidget {
       String userId) async {
     print('Attempting login for $username'); // Add this print statement
 
-    final url = Uri.parse('https://9f93-176-29-208-189.ngrok-free.app/user/login');
+    final url = Uri.parse('https://768f-2a01-9700-1a9a-7800-5b0-d5cd-7f59-3613.ngrok-free.app/user/login');
 
     try {
       final response = await http.post(

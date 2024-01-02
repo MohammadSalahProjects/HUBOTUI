@@ -65,9 +65,9 @@ class _StudentRegistrationPageState extends State<StudentRegistrationPage> {
 
   Future<void> fetchFacultiesAndDepartments() async {
     final facultiesResponse = await http
-        .get(Uri.parse('https://9f93-176-29-208-189.ngrok-free.app/faculty/getAllFaculties'));
+        .get(Uri.parse('https://768f-2a01-9700-1a9a-7800-5b0-d5cd-7f59-3613.ngrok-free.app/faculty/getAllFaculties'));
     final departmentsResponse = await http
-        .get(Uri.parse('https://9f93-176-29-208-189.ngrok-free.app/department/getAllDepartments'));
+        .get(Uri.parse('https://768f-2a01-9700-1a9a-7800-5b0-d5cd-7f59-3613.ngrok-free.app/department/getAllDepartments'));
 
     if (facultiesResponse.statusCode == 200 &&
         departmentsResponse.statusCode == 200) {
@@ -85,7 +85,7 @@ class _StudentRegistrationPageState extends State<StudentRegistrationPage> {
 
   Future<void> fetchMajorsByDepartment(String department) async {
     final response = await http.get(Uri.parse(
-        'https://9f93-176-29-208-189.ngrok-free.app/major/getAllMajorByDepartment?department=$department'));
+        'https://768f-2a01-9700-1a9a-7800-5b0-d5cd-7f59-3613.ngrok-free.app/major/getAllMajorByDepartment?department=$department'));
 
     if (response.statusCode == 200) {
       final majorsData = json.decode(response.body);
