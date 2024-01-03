@@ -2,14 +2,17 @@
     package="com.example.hubot">
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
-   <application
-   android:enableOnBackInvokedCallback="true"
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE"/>
+    <uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION"/>
+    <uses-permission android:name="android.permission.INTERNET"/>
+
+    <application
         android:label="hubot"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <meta-data
     android:name="com.google.android.geo.API_KEY"
-    android:value="AIzaSyDFKL_CUqn-PV_Y0ZHbA7LbDE9Me9BSlr4"/>
+    android:value="AIzaSyC8jCKJvrGH1h2t_P9KF7M_GSHpVqgfyK4"/>
         <activity
             android:name=".MainActivity"
             android:exported="true"

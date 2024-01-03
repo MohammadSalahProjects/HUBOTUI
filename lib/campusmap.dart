@@ -1,12 +1,18 @@
 import 'dart:async';
 import 'dart:convert';
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:hubot/Location/Location_model.dart';
 import 'package:location/location.dart';
+import 'package:location/location.dart' as loc;
+import 'package:url_launcher/url_launcher.dart';
 import 'package:flutter_polyline_points/flutter_polyline_points.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'dart:math' show cos, sqrt, asin;
 
+import 'Directions_model.dart';
+import 'package:hubot/dirictionRepository.dart';
 import 'consts.dart';
 
 class MapScreen extends StatefulWidget {
@@ -15,6 +21,8 @@ class MapScreen extends StatefulWidget {
 
 class _MapScreenState extends State<MapScreen> {
   Location _locationController = Location();
+  DirectionRepository _directionRepository = DirectionRepository(dio: Dio());
+
 
   final Completer<GoogleMapController> _mapController = Completer<GoogleMapController>();
 
@@ -22,6 +30,8 @@ class _MapScreenState extends State<MapScreen> {
   static const LatLng _pApplePark = LatLng(37.3346, -122.0090);
   LatLng? _currentP;
   LatLng? selectedDestination;
+
+  late Directions _info;
 
   Map<PolylineId, Polyline> polylines = {};
 
@@ -94,8 +104,9 @@ class _MapScreenState extends State<MapScreen> {
                     selectedDestination = LatLng(coordinates[0], coordinates[1]);
                   });
                   _cameraToPosition(selectedDestination!);
-                  _navigateToDestination();
-                  _drawRoute(_currentP!,selectedDestination!);// Navigate the user to the selected destination
+                  if (_currentP != null && selectedDestination != null) {
+                    _drawRoute(_currentP!, selectedDestination!); // Pass the source and destination coordinates
+                  }
                 }
               }
             },
@@ -114,7 +125,7 @@ class _MapScreenState extends State<MapScreen> {
                 onMapCreated: ((GoogleMapController controller) => _mapController.complete(controller)),
                 initialCameraPosition: CameraPosition(
                   target: _pGooglePlex,
-                  zoom: 13,
+                  zoom: 5,
                 ),
                 markers: {
                   Marker(
@@ -136,11 +147,6 @@ class _MapScreenState extends State<MapScreen> {
           ],
         ),
       ),
-
-      
-
-
-
     );
   }
 
@@ -151,8 +157,23 @@ class _MapScreenState extends State<MapScreen> {
   }
 
   void _drawRoute(LatLng source, LatLng destination) async {
-    List<LatLng> polylineCoordinates = await getPolylinePoints(source, destination);
-    generatePolyLineFromPoints(polylineCoordinates);
+    try {
+      Directions? directions = await _directionRepository.getDirections(
+        currentP: source,
+        destination: destination,
+      );
+
+      if (directions != null) {
+        setState(() {
+          _info = directions;
+        });
+
+        generatePolyLineFromPoints(directions.polylinepoints.map((point) =>
+            LatLng(point.latitude, point.longitude)).toList());
+      }
+    } catch (e) {
+      print('Error fetching directions: $e');
+    }
   }
 
   Future<void> _cameraToPosition(LatLng pos) async {
@@ -229,4 +250,5 @@ class _MapScreenState extends State<MapScreen> {
       polylines[id] = polyline;
     });
   }
+
 }

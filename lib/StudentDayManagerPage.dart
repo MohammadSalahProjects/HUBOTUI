@@ -5,6 +5,8 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 
+import 'Notes.dart';
+
 class AddSubjectDialog extends StatefulWidget {
   final String userId;
   final void Function(String) addSubject;
@@ -192,6 +194,23 @@ class _AddSubjectDialogState extends State<AddSubjectDialog> {
       }
     } catch (error) {
       print('Error fetching courses: $error');
+    }
+  }
+  Future<String?> fetchStudentId(String userId) async {
+    final String studentIdApiUrl =
+        'https://768f-2a01-9700-1a9a-7800-5b0-d5cd-7f59-3613.ngrok-free.app/registerStudent/getStudentIdByUserId?userId=$userId';
+
+    try {
+      final http.Response response = await http.get(Uri.parse(studentIdApiUrl));
+      if (response.statusCode == 200) {
+        final studentIdDecodedResponse = jsonDecode(response.body);
+         studentIdDecodedResponse;
+       return studentIdDecodedResponse;
+      } else {
+        print('Failed to fetch StudentId: ${response.statusCode}');
+      }
+    } catch (error) {
+      print('Error fetching StudentId: $error');
     }
   }
 
@@ -407,7 +426,24 @@ class _StudentDayManagerPageState extends State<StudentDayManagerPage> {
       addedSubjects.add(subjectInfo);
     });
   }
+  Future<String?> fetchSubjectId(String courseId) async {
+    String studentId = fetchStudentId(widget.userId) as String;
+    final String subjectIdApiUrl =
+        'https://768f-2a01-9700-1a9a-7800-5b0-d5cd-7f59-3613.ngrok-free.app/ScheduleSubjects/getSpecificSubjectIdForStudent?studentId=$studentId&courseId=$courseId';
 
+    try {
+      final http.Response response = await http.get(Uri.parse(subjectIdApiUrl));
+      if (response.statusCode == 200) {
+        final subjectIdDecodedResponse = jsonDecode(response.body);
+        subjectIdDecodedResponse;
+        return subjectIdDecodedResponse;
+      } else {
+        print('Failed to fetch SubjectId: ${response.statusCode}');
+      }
+    } catch (error) {
+      print('Error fetching SubjectId: $error');
+    }
+  }
   Future<String?> fetchCourseIdByCourseName(String subjectInfo) async {
     try {
       if (!subjectInfo.contains(':') || !subjectInfo.contains('\n')) {
@@ -462,6 +498,7 @@ class _StudentDayManagerPageState extends State<StudentDayManagerPage> {
     setState(() {
       addedSubjects.add(subjectInfo);
     });
+    _loadSubjects();
     Navigator.pop(context); // Close the dialog after adding the subject
   }
 
@@ -558,11 +595,15 @@ class _StudentDayManagerPageState extends State<StudentDayManagerPage> {
                       );
                     },
                   );
+                  _loadSubjects();
                 },
                 child: const Text('Add Subject'),
               ),
             ),
-          ],
+
+
+    ],
+
         ),
       ),
     );
@@ -573,6 +614,7 @@ class SubjectButton extends StatelessWidget {
   final String subjectInfo;
   final String userId;
   final Function() onDelete;
+
 
   const SubjectButton({
     Key? key,
@@ -607,6 +649,17 @@ class SubjectButton extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               GestureDetector(
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => NotePage(
+                        userId: userId,
+                        subjectInfo: subjectInfo,
+                      ),
+                    ),
+                  );
+                },
                 child: Text(
                   'Add Note',
                   style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
@@ -623,6 +676,7 @@ class SubjectButton extends StatelessWidget {
     );
   }
 }
+
 
 Future<List<String>> fetchSubjectsForUser(String userId) async {
   final String getStudentUri =
@@ -668,4 +722,5 @@ Future<List<String>> fetchSubjectsForUser(String userId) async {
     print('Error fetching subjects: $error');
     return [];
   }
+
 }
